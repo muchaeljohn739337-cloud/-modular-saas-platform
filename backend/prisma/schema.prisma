@@ -47,6 +47,7 @@ model User {
   emailSignupTokenExpiry DateTime?
   signupMethod      String             @default("password")
   firstLoginCompleted Boolean          @default(false)
+  stripeCustomerId  String?            @unique
   RPAWorkflow       RPAWorkflow[]
   cryptoWithdrawals CryptoWithdrawal[]
   emailLogs         EmailLog[]

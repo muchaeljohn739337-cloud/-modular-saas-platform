@@ -28,7 +28,7 @@ export default function ForgotPasswordPage() {
       } else {
         setError(data.error || 'Failed to send reset request');
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please try again.');
     } finally {
       setLoading(false);
@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
               </div>
               <h1 className="text-3xl font-bold text-gray-800 mb-2">Forgot Password?</h1>
               <p className="text-gray-600">
-                Don't worry! Submit a request and admin will help you recover your account.
+                Don&apos;t worry! Submit a request and admin will help you recover your account.
               </p>
             </div>
 
@@ -108,7 +108,7 @@ export default function ForgotPasswordPage() {
               <p className="font-medium mb-2">📧 What happens next?</p>
               <ul className="text-left space-y-1">
                 <li>• Admin will review your request</li>
-                <li>• You'll receive your new password via email or support</li>
+                <li>• You&apos;ll receive your new password via email or support</li>
                 <li>• Expected response time: 24-48 hours</li>
               </ul>
             </div>

@@ -2,9 +2,29 @@
 
 import { useState, useEffect } from "react";
 
+interface PaymentMethod {
+  id: string;
+  brand?: string;
+  last4?: string;
+  expMonth?: number;
+  expYear?: number;
+  isDefault?: boolean;
+}
+
+interface Subscription {
+  id: string;
+  status: string;
+  planName: string;
+  amount: number;
+  interval?: string;
+  currentPeriodEnd: number;
+  cancelAtPeriodEnd: boolean;
+  created: number;
+}
+
 export default function PaymentMethodsPage() {
-  const [methods, setMethods] = useState<any[]>([]);
-  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [methods, setMethods] = useState<PaymentMethod[]>([]);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("methods");
 
@@ -57,7 +77,7 @@ export default function PaymentMethodsPage() {
       } else {
         alert(data.error);
       }
-    } catch (error) {
+    } catch {
       alert("Failed to remove payment method");
     }
   };
@@ -81,7 +101,7 @@ export default function PaymentMethodsPage() {
       const data = await res.json();
       alert(data.message || data.error);
       if (data.success) fetchSubscriptions();
-    } catch (error) {
+    } catch {
       alert("Failed to cancel subscription");
     }
   };
