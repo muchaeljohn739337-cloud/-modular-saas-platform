@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import AddPaymentMethodModal from "./AddPaymentMethodModal";
 
 interface PaymentMethod {
   id: string;
@@ -27,6 +28,7 @@ export default function PaymentMethodsPage() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("methods");
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     fetchMethods();
@@ -173,7 +175,10 @@ export default function PaymentMethodsPage() {
                     <div className="text-5xl mb-4">💳</div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">No saved payment methods</h3>
                     <p className="text-gray-600 mb-6">Add a payment method to make future payments easier</p>
-                    <button className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition">
+                    <button 
+                      onClick={() => setShowAddModal(true)}
+                      className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition"
+                    >
                       Add Payment Method
                     </button>
                   </div>
@@ -289,6 +294,16 @@ export default function PaymentMethodsPage() {
           </div>
         </div>
       </div>
+
+      {/* Add Payment Method Modal */}
+      {showAddModal && (
+        <AddPaymentMethodModal
+          onClose={() => setShowAddModal(false)}
+          onSuccess={() => {
+            fetchMethods();
+          }}
+        />
+      )}
     </div>
   );
 }
