@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       required_checks:
-        description: 'Comma-separated status check names that must pass (e.g. "Render Pre-Deploy,build,test")'
+        description: 'Comma-separated status check names that must pass (e.g. "Render Pre-Deploy,build,test,Integration Tests")'
         required: false
-        default: "Render Pre-Deploy,build,test"
+        default: "Render Pre-Deploy,build,test,Integration Tests"
 
 jobs:
   apply-protection:

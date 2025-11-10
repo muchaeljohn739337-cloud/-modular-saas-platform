@@ -38,6 +38,24 @@ jobs:
           name: db-backup
           path: backup.dump
 
+      - name: Optionally upload backup to S3
+        if: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.S3_BACKUPS_BUCKET != '' }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          S3_BACKUPS_BUCKET: ${{ secrets.S3_BACKUPS_BUCKET }}
+        run: |
+          pip install --user awscli
+          export PATH="$HOME/.local/bin:$PATH"
+          date=$(date -u +%Y-%m-%d_%H-%M-%SZ)
+          key="backups/backend/db-backup-$date.dump"
+          aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
+          aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
+          aws configure set default.region ${AWS_REGION:-us-east-1}
+          aws s3 cp backup.dump s3://$S3_BACKUPS_BUCKET/$key --acl private
+          echo "Uploaded backup to s3://$S3_BACKUPS_BUCKET/$key"
+
       - name: Trigger Render migration job
         id: trigger
         env:

@@ -142,6 +142,17 @@ If you'd like, I can:
 - Add a Render-based backup option for private DBs.
 - Wire Slack notifications to mention a channel or ping users on failures.
 
+## Rollbacks
+
+- `render-rollback.yml` added: a manual workflow to roll back to the last successful deploy (or a specific deploy id supplied by input). It works by finding the last successful deploy via the Render API and calling the redeploy endpoint. Use this only when you need to perform a manual rollback.
+
+Required repo secrets for rollback:
+ - `RENDER_API_KEY`
+ - `RENDER_SERVICE_ID`
+
+Notes:
+ - The rollback will trigger a redeploy for the target deploy id. Ensure you verify the resulting deployment and run health checks.
+
 ## Deploy approval / environment notes
 
 - The `.github/workflows/render-auto-deploy.yml` workflow in this repo uses the GitHub Environment named `production`.

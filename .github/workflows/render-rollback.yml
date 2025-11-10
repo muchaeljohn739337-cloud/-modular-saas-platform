@@ -1,0 +1,81 @@
+name: Render Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      restore_to_deploy_id:
+        description: 'Optional: provide a deploy ID to roll back to. If omitted, the last successful deploy will be used.'
+        required: false
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Validate inputs and secrets
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          if [ -z "${RENDER_API_KEY:-}" ] || [ -z "${RENDER_SERVICE_ID:-}" ]; then
+            echo "RENDER_API_KEY and RENDER_SERVICE_ID are required secrets. Aborting." >&2
+            exit 1
+          fi
+
+      - name: Determine deploy to roll back to
+        id: select_deploy
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          if [ -n "${{ github.event.inputs.restore_to_deploy_id }}" ]; then
+            echo "deploy_id=${{ github.event.inputs.restore_to_deploy_id }}" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "No deploy id provided; querying recent deploys for last successful..."
+          RESP=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys?limit=50)
+          DEPLOY_ID=$(echo "$RESP" | jq -r '.[] | select(.state=="succeeded") | .id' | head -n 1)
+          if [ -z "$DEPLOY_ID" ]; then
+            echo "No successful deploy found to rollback to." >&2
+            exit 2
+          fi
+          echo "deploy_id=$DEPLOY_ID" >> $GITHUB_OUTPUT
+
+      - name: Trigger rollback deploy
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          DEPLOY_ID=${{ steps.select_deploy.outputs.deploy_id }}
+          echo "Triggering redeploy for deploy id: $DEPLOY_ID"
+          RESP=$(curl -s -X POST -H "Authorization: Bearer $RENDER_API_KEY" -H "Accept: application/json" \
+            https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys/$DEPLOY_ID/redeploy)
+          echo "$RESP" | jq .
+          RUN_ID=$(echo "$RESP" | jq -r .id)
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "Failed to trigger rollback redeploy." >&2
+            exit 2
+          fi
+          echo "Started rollback redeploy: $RUN_ID"
+
+      - name: Poll redeploy status
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          RUN_ID=$(echo "$RESP" | jq -r .id)
+          for i in $(seq 1 90); do
+            STATUS=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys/$RUN_ID | jq -r .state)
+            echo "[$i] status=$STATUS"
+            if [ "$STATUS" = "succeeded" ]; then
+              echo "Rollback deploy succeeded."
+              exit 0
+            fi
+            if [ "$STATUS" = "failed" ]; then
+              echo "Rollback deploy failed." >&2
+              exit 2
+            fi
+            sleep 10
+          done
+          echo "Timed out waiting for rollback deploy to complete." >&2
+          exit 3
