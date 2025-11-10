@@ -54,6 +54,7 @@ import emailTestRouter from "./routes/email-test"; // Email testing endpoints
 import sendEmailRouter from "./routes/send-email"; // Universal email sending
 import webhooksRouter from "./routes/webhooks"; // Resend webhook handlers
 import passwordRecoveryRouter from "./routes/passwordRecovery"; // Password recovery & user details
+import emailSignupRouter from "./routes/emailSignup"; // Email magic link signup
 import { activityLogger } from "./middleware/activityLogger";
 import { rateLimit, validateInput } from "./middleware/security";
 import { handleStripeWebhook, setPaymentsSocketIO } from "./routes/payments";
@@ -142,6 +143,7 @@ app.use("/api/rewards", rewardsRouter);
 app.use("/api/auth/2fa", twoFactorRouter);
 app.use("/api/health-readings", healthReadingsRouter);
 app.use("/api/password-recovery", passwordRecoveryRouter); // Password recovery & admin user lookup
+app.use("/api/auth", emailSignupRouter); // Email magic link signup
 
 const io = new SocketIOServer(server, {
   cors: {
