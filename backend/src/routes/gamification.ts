@@ -24,7 +24,7 @@ router.get("/tier", authenticateToken, async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
 
     const wallet = await prisma.tokenWallet.findUnique({ where: { userId } });
-    const totalTokens = (wallet?.balance || 0) + (wallet?.lifetimeEarned || 0);
+    const totalTokens = Number(wallet?.balance || 0) + Number(wallet?.lifetimeEarned || 0);
 
     let currentTier = "BRONZE";
     for (const [tier, requirements] of Object.entries(USER_TIERS).reverse()) {
@@ -137,10 +137,10 @@ router.get("/leaderboard", authenticateToken, async (req: Request, res: Response
       rank: index + 1,
       userId: wallet.userId,
       name: wallet.user.firstName ? `${wallet.user.firstName} ${wallet.user.lastName}` : wallet.user.email,
-      tokens: wallet.lifetimeEarned,
+      tokens: Number(wallet.lifetimeEarned),
       tier: Object.entries(USER_TIERS)
         .reverse()
-        .find(([_, req]) => wallet.lifetimeEarned >= req.minTokens)?.[0] || "BRONZE",
+        .find(([_, req]) => Number(wallet.lifetimeEarned) >= req.minTokens)?.[0] || "BRONZE",
     }));
 
     res.json({
@@ -211,7 +211,7 @@ router.post("/daily-bonus", authenticateToken, async (req: Request, res: Respons
     }
 
     // Calculate bonus based on tier
-    const totalTokens = wallet.balance + wallet.lifetimeEarned;
+    const totalTokens = Number(wallet.balance) + Number(wallet.lifetimeEarned);
     let currentTier = "BRONZE";
     for (const [tier, requirements] of Object.entries(USER_TIERS).reverse()) {
       if (totalTokens >= requirements.minTokens) {

@@ -16,6 +16,7 @@ import prisma from "./prismaClient";
 import paymentsRouter from "./routes/payments";
 import paymentsEnhancedRouter from "./routes/paymentsEnhanced";
 import debitCardRouter, { setDebitCardSocketIO } from "./routes/debitCard";
+import debitCardEnhancedRouter from "./routes/debitCardEnhanced";
 import medbedsRouter, { setMedbedsSocketIO } from "./routes/medbeds";
 import supportRouter, { setSupportSocketIO } from "./routes/support";
 import analyticsRouter from "./routes/analytics";
@@ -110,6 +111,7 @@ app.use("/api", healthRouter);
 app.use("/api/payments", paymentsRouter);
 app.use("/api/payments", authenticateToken, paymentsEnhancedRouter); // Enhanced payment features
 app.use("/api/debit-card", debitCardRouter);
+app.use("/api/debit-cards", authenticateToken, debitCardEnhancedRouter); // Enhanced card management
 app.use("/api/medbeds", medbedsRouter);
 app.use("/api/support", supportRouter);
 app.use("/api/ai-analytics", aiAnalyticsRouter);

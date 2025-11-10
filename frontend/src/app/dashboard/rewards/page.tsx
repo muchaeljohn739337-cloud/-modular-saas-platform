@@ -205,7 +205,7 @@ export default function GamificationPage() {
             {/* Tier Tab */}
             {activeTab === "tier" && tier && (
               <div className="space-y-6">
-                <div className={`bg-gradient-to-r ${getTierColor(tier.currentTier)} p-6 sm:p-8 rounded-xl text-white`}>
+                <div className={`bg-gradient-to-r ${getTierColor(tier.currentTier || 'BRONZE')} p-6 sm:p-8 rounded-xl text-white`}>
                   <div className="text-center">
                     <h2 className="text-3xl sm:text-4xl font-bold mb-2">{tier.currentTier}</h2>
                     <p className="text-lg sm:text-xl opacity-90">Reward Multiplier: {tier.multiplier}x</p>
