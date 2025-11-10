@@ -132,6 +132,25 @@ Recommended flow:
 
 This provides a safe, human-approved production deploy path while keeping CI as the automated gate.
 
+## Backup & migration workflow
+
+I added `.github/workflows/backup-and-migrate.yml` — a manual workflow to:
+
+- Create a Postgres backup using `pg_dump` (uploads an artifact named `db-backup`).
+- Trigger the Render migration job (requires `RENDER_MIGRATION_JOB_ID`), poll for completion.
+- Run a quick health check after migrations.
+
+Required repository secrets for this workflow:
+- `DATABASE_URL` — (only used here to create a backup; if your DB is private to Render, ensure GitHub Actions can reach it or run backups from a runner with network access)
+- `RENDER_API_KEY`
+- `RENDER_SERVICE_ID`
+- `RENDER_MIGRATION_JOB_ID` — the job id visible in Render for the `run-migrations` job (you can also use a job numeric id from the Render API)
+
+Notes:
+- The Render jobs API endpoint used may depend on your Render account; if the trigger step fails, check the exact jobs run endpoint in Render API docs and update `backup-and-migrate.yml` accordingly.
+- Backup artifacts are stored in GitHub Actions and should be downloaded and archived/stored offsite as part of your runbook.
+
+
 ## Example
 ```
 DATABASE_URL=postgres://user:pass@host:5432/db_adva
