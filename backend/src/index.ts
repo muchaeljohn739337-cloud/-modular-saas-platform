@@ -43,7 +43,10 @@ import sessionsRouter, {
 import withdrawalsRouter, { setWithdrawalSocketIO } from "./routes/withdrawals";
 import healthRouter from './routes/health';
 import tokensRouter, { setTokenSocketIO } from "./routes/tokens";
+import tokensEnhancedRouter from "./routes/tokensEnhanced";
 import rewardsRouter from "./routes/rewards";
+import gamificationRouter from "./routes/gamification";
+import analyticsEnhancedRouter from "./routes/analyticsEnhanced";
 import healthReadingsRouter from "./routes/health-readings";
 import oalRouter, { setOALSocketIO } from "./routes/oal";
 import userApprovalRouter from "./routes/userApproval";
@@ -112,6 +115,7 @@ app.use("/api/auth", authRouter);
 
 // Admin routes - PROTECTED with requireAdmin middleware
 app.use("/api/admin/analytics", authenticateToken, requireAdmin, analyticsRouter);
+app.use("/api/analytics", authenticateToken, analyticsEnhancedRouter); // Enhanced analytics with export
 app.use("/api/admin/security", authenticateToken, requireAdmin, securityLevelRouter);
 app.use("/api/admin/ip-blocks", authenticateToken, requireAdmin, ipBlocksRouter);
 app.use("/api/admin/user-approval", authenticateToken, requireAdmin, userApprovalRouter);
@@ -133,6 +137,8 @@ app.use("/api/sessions", sessionsRouter);
 app.use("/api/withdrawals", withdrawalsRouter);
 app.use("/api/oal", oalRouter);
 app.use("/api/tokens", tokensRouter);
+app.use("/api/tokens", authenticateToken, tokensEnhancedRouter); // Enhanced token features
+app.use("/api/gamification", authenticateToken, gamificationRouter); // Rewards & achievements
 app.use("/api/invoices", invoicesRouter);
 app.use("/api/emails", emailsRouter);
 app.use("/api/email", emailRouter); // New email templates endpoint
