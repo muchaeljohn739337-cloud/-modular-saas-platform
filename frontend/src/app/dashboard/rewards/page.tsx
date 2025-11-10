@@ -4,10 +4,14 @@ import { useState, useEffect } from "react";
 
 interface Tier {
   tier: string;
+  currentTier?: string;
   xp: number;
   nextTier: string;
   xpForNext: number;
   multiplier: number;
+  totalTokens?: number;
+  tokensUntilNextTier?: number;
+  benefits?: string[];
 }
 
 interface Achievement {
@@ -17,6 +21,7 @@ interface Achievement {
   unlocked: boolean;
   progress?: number;
   requirement?: number;
+  reward?: number;
 }
 
 interface LeaderboardEntry {
@@ -25,6 +30,7 @@ interface LeaderboardEntry {
   name: string;
   xp: number;
   tier: string;
+  tokens?: number;
 }
 
 interface Challenge {
@@ -34,12 +40,17 @@ interface Challenge {
   reward: number;
   deadline: string;
   completed: boolean;
+  progress?: number;
+  target?: number;
+  progressPercent?: number;
 }
 
 interface Referral {
   code: string;
   referrals: number;
   earnings: number;
+  referralLink?: string;
+  reward?: number;
 }
 
 export default function GamificationPage() {

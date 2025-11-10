@@ -6,6 +6,9 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 interface ChartDataPoint {
   time: string;
   price: number;
+  high?: number;
+  low?: number;
+  volume?: number;
 }
 
 interface Rates {
@@ -17,6 +20,7 @@ interface SwapPreview {
   toAmount: number;
   rate: number;
   fee: number;
+  feePercent?: number;
 }
 
 export default function CryptoChartsPage() {
@@ -41,7 +45,7 @@ export default function CryptoChartsPage() {
     if (swapForm.amount && parseFloat(swapForm.amount) > 0) {
       fetchSwapPreview();
     }
-  }, [swapForm]);
+  }, [swapForm, fetchSwapPreview]);
 
   const fetchChart = async (symbol: string) => {
     try {
