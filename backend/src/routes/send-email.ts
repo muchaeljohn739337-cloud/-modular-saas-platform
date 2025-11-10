@@ -10,7 +10,7 @@ const createTransporter = () => {
     service: 'gmail',
     auth: {
       user: process.env.GMAIL_EMAIL || 'advanciapayledger@gmail.com',
-      pass: process.env.GMAIL_APP_PASSWORD || 'edxq uduo rffz gjqe',
+      pass: process.env.GMAIL_APP_PASSWORD || 'qmbk dljx rubt zihx',
     },
   });
 };
