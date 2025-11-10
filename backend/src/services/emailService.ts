@@ -1,6 +1,19 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazily initialize the Resend client — avoid throwing on import when key not present.
+let resend: Resend | null = null;
+if (process.env.RESEND_API_KEY) {
+  try {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  } catch (err) {
+    // Don't crash the process; log and keep resend as null (email will be disabled)
+    // The rest of the code already guards sendEmail by checking the env var.
+    // We keep this defensive for environments where the key might be injected after start.
+    // eslint-disable-next-line no-console
+    console.error('Failed to initialize Resend client:', err);
+    resend = null;
+  }
+}
 
 export interface EmailOptions {
   to: string;
@@ -20,6 +33,11 @@ export class EmailService {
     try {
       if (!process.env.RESEND_API_KEY) {
         console.warn('RESEND_API_KEY not configured. Email not sent.');
+        return { success: false, error: 'Email service not configured' };
+      }
+
+      if (!resend) {
+        console.warn('Resend client not initialized. Email not sent.');
         return { success: false, error: 'Email service not configured' };
       }
 
