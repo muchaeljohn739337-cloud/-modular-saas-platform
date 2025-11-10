@@ -52,6 +52,7 @@ import healthReadingsRouter from "./routes/health-readings";
 import oalRouter, { setOALSocketIO } from "./routes/oal";
 import userApprovalRouter from "./routes/userApproval";
 import cryptomusRouter from "./routes/cryptomus";
+import cryptoEnhancedRouter from "./routes/cryptoEnhanced";
 import emailsRouter from "./routes/emails";
 import emailRouter from "./routes/email"; // Email templates router
 import emailTestRouter from "./routes/email-test"; // Email testing endpoints
@@ -141,6 +142,7 @@ app.use("/api/oal", oalRouter);
 app.use("/api/tokens", tokensRouter);
 app.use("/api/tokens", authenticateToken, tokensEnhancedRouter); // Enhanced token features
 app.use("/api/gamification", authenticateToken, gamificationRouter); // Rewards & achievements
+app.use("/api/crypto", authenticateToken, cryptoEnhancedRouter); // Crypto charts & swap
 app.use("/api/invoices", invoicesRouter);
 app.use("/api/emails", emailsRouter);
 app.use("/api/email", emailRouter); // New email templates endpoint
