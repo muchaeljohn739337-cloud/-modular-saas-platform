@@ -90,3 +90,75 @@ Before CI can test integration paths, add these GitHub Secrets (Repository -> Se
 - VAPID_PRIVATE_KEY
 
 If those secrets are not set the CI job will still run lint/typecheck/build. Integration tests will require a working `TEST_DATABASE_URL` or the workflow's Postgres service.
+
+---
+
+## Automated migrations with Render jobs
+
+You can add a job to your `render.yaml` to run database migrations on each deploy (single-click):
+
+```yaml
+jobs:
+  - name: run-migrations
+    type: manual
+    env: production
+    plan: free
+    region: oregon
+    rootDir: backend
+    startCommand: >
+      npm ci && npx prisma generate && npx prisma migrate deploy
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: NODE_ENV
+        value: production
+```
+
+- Trigger this job from the Render dashboard after each deploy, or set it to run automatically if desired.
+- This ensures your database schema is always up to date.
+
+---
+
+## GitHub Actions: Auto-deploy to Render
+
+You can enable automatic deployment to Render after CI passes by adding a workflow like `.github/workflows/render-auto-deploy.yml`:
+
+```yaml
+name: Render Auto-Deploy
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ success() }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Trigger Render Deploy
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          curl -X POST \
+            -H "Accept: application/json" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -d '' \
+            https://api.render.com/v1/services/{RENDER_SERVICE_ID}/deploys
+```
+- Set the `RENDER_API_KEY` secret in your GitHub repo (Settings > Secrets > Actions).
+- Replace `{RENDER_SERVICE_ID}` with your actual Render backend service ID (find it in the Render dashboard URL for your service).
+
+---
+
+## Enforcing pre-deploy checks before merging PRs
+
+1. Add a branch protection rule in GitHub:
+   - Go to Settings > Branches > Add rule for `main`.
+   - Require status checks to pass before merging.
+   - Select your pre-deploy workflow (e.g., `Render Pre-Deploy`).
+2. Optionally, use PR labels (e.g., `ready-to-merge`) and only allow merges when the label is present and checks pass.
+3. See `.github/workflows/pr-status-check.yml` for a sample status check workflow.
+
+---

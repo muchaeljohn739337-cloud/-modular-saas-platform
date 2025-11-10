@@ -1,0 +1,35 @@
+
+# GitHub Actions workflow to auto-deploy to Render after CI passes
+# Requires RENDER_API_KEY as a GitHub secret
+name: Render Auto-Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ success() }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Trigger Render Deploy
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          if [ -z "$RENDER_API_KEY" ]; then
+            echo "RENDER_API_KEY secret not set. Skipping deploy."
+            exit 1
+          fi
+          curl -X POST \
+            -H "Accept: application/json" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -d '' \
+            https://api.render.com/v1/services/{RENDER_SERVICE_ID}/deploys
+
+# Replace {RENDER_SERVICE_ID} with your actual Render backend service ID.
+# See backend/README.render.md for setup instructions.

@@ -80,3 +80,19 @@ databases:
     user: advancia_user
     plan: free
     region: virginia
+
+# Optional: Run DB migrations as a job on each deploy (single-click)
+jobs:
+  - name: run-migrations
+    type: manual
+    env: production
+    plan: free
+    region: oregon
+    rootDir: backend
+    startCommand: >
+      npm ci && npx prisma generate && npx prisma migrate deploy
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: NODE_ENV
+        value: production
