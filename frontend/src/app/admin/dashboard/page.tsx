@@ -12,10 +12,23 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 
+interface DashboardStats {
+  totalUsers?: number;
+  userGrowth?: number;
+  newUsersThisWeek?: number;
+  totalRevenue?: number;
+  revenueGrowth?: number;
+  revenueThisMonth?: number;
+  totalTransactions?: number;
+  transactionsToday?: number;
+  pendingWithdrawals?: number;
+  pendingWithdrawalAmount?: number;
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<Record<string, unknown> | null>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,7 +41,7 @@ export default function AdminDashboard() {
     // Use the new API client with auto-refresh
     adminApi.getDashboardStats()
       .then((response) => {
-        setStats(response.data);
+        setStats(response.data as DashboardStats);
         setError(null);
         setLoading(false);
       })

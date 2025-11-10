@@ -2,14 +2,27 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { adminApi } from '@/lib/api';
 
 interface AdminRouteGuardProps {
   children: React.ReactNode;
 }
 
+// Helper to decode JWT and check expiration
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const exp = payload.exp * 1000; // Convert to milliseconds
+    return Date.now() >= exp;
+  } catch {
+    return true; // Invalid token format
+  }
+}
+
 /**
  * AdminRouteGuard - Protects admin routes from regular users
  * Redirects non-admin users to dashboard with error message
+ * Automatically refreshes expired tokens via apiClient interceptor
  */
 export default function AdminRouteGuard({ children }: AdminRouteGuardProps) {
   const router = useRouter();
@@ -30,6 +43,7 @@ export default function AdminRouteGuard({ children }: AdminRouteGuardProps) {
         // Check if user is logged in
         const token = localStorage.getItem('token');
         const userEmail = localStorage.getItem('userEmail');
+        const userRole = localStorage.getItem('userRole');
 
         if (!token || !userEmail) {
           // Not logged in - redirect to admin login
@@ -37,54 +51,59 @@ export default function AdminRouteGuard({ children }: AdminRouteGuardProps) {
           return;
         }
 
-        // Check if user is admin by calling backend
-        const response = await fetch('http://localhost:4000/api/admin/dashboard/stats', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
+        // Quick role check (client-side optimization)
+        if (userRole !== 'ADMIN') {
+          alert('Access Denied: Admin privileges required');
+          router.push('/dashboard');
+          return;
+        }
 
-        if (response.ok) {
-          // User is admin
+        // Check token expiration
+        if (isTokenExpired(token)) {
+          console.log('Token expired, will attempt refresh via API call...');
+          // Token expired - the apiClient interceptor will handle refresh
+          // Just proceed with the API call
+        }
+
+        // Verify admin access with backend (this will auto-refresh if needed)
+        const response = await adminApi.getDashboardStats();
+        
+        if (response.status === 200) {
+          // User is admin and token is valid
           setIsAuthorized(true);
           setIsChecking(false);
-        } else if (response.status === 403) {
+        }
+      } catch (error: any) {
+        console.error('Admin access check failed:', error);
+        
+        if (error.response?.status === 403) {
           // User is NOT admin - redirect to dashboard
           alert('Access Denied: Admin privileges required');
           router.push('/dashboard');
         } else {
-          // Token invalid or expired - redirect to login
-          localStorage.removeItem('token');
-          localStorage.removeItem('userEmail');
-          router.push('/auth/login');
+          // Other error (token refresh failed, network error, etc.)
+          // The apiClient interceptor will handle redirects if refresh fails
+          localStorage.clear();
+          router.push('/admin/login');
         }
-      } catch (error) {
-        console.error('Error checking admin access:', error);
-        alert('Unable to verify admin access. Please try again.');
-        router.push('/dashboard');
       }
     };
 
     checkAdminAccess();
   }, [router, pathname]);
 
-  // Show loading while checking
+  // Show loading state while checking
   if (isChecking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
-        <div className="text-white text-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
           <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-xl font-semibold">Verifying admin access...</p>
+          <p className="text-white text-lg">Verifying admin access...</p>
         </div>
       </div>
     );
   }
 
-  // Show children only if authorized
-  if (isAuthorized) {
-    return <>{children}</>;
-  }
-
-  // Return null while redirecting
-  return null;
+  // Only render children if authorized
+  return isAuthorized ? <>{children}</> : null;
 }
