@@ -29,6 +29,7 @@ import twoFactorRouter from "./routes/twoFactor";
 import adminDashboardRouter from "./routes/adminDashboard";
 import chatRouter, { setChatSocketIO } from "./routes/chat";
 import adminRouter from "./routes/admin";
+import adminBulkActionsRouter from "./routes/adminBulkActions";
 import consultationRouter from "./routes/consultation";
 import systemRouter from "./routes/system";
 import marketingRouter from "./routes/marketing";
@@ -126,6 +127,7 @@ app.use("/api/admin/user-approval", authenticateToken, requireAdmin, userApprova
 app.use("/api/admin", authenticateToken, requireAdmin, adminUsersRouter);
 app.use("/api/admin", authenticateToken, requireAdmin, adminDashboardRouter);
 app.use("/api/admin", authenticateToken, requireAdmin, adminRouter);
+app.use("/api/admin/bulk", authenticateToken, requireAdmin, adminBulkActionsRouter); // Bulk user actions
 
 // Admin auth (public - for login)
 app.use("/api/auth/admin", authAdminRouter);
