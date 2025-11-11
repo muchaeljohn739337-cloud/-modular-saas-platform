@@ -397,19 +397,85 @@ Run the comprehensive test suite:
 # Run all tests
 npm test
 
-# Run specific test file
-npm test -- auth.test.ts
+# Run with watch mode (auto-rerun on changes)
+npm run test:watch
 
-# Run with coverage
-npm test -- --coverage
+# Run with full coverage report
+npm run test:coverage
 
-# Watch mode
-npm test -- --watch
+# Run only integration tests
+npm run test:integration
+
+# Run only unit tests
+npm run test:unit
+
+# Run notification tests specifically
+npm run test:notifications
+
+# Run with verbose output for debugging
+npm run test:verbose
 ```
 
-**Test Status**: ✅ 15/15 unit tests passing
+**Test Status**: ✅ 67/84 tests passing (17 skipped - generic payments API)
 
-**For detailed test documentation**, see [tests/README.md](./tests/README.md)
+### Test Infrastructure
+
+The test suite includes comprehensive infrastructure for robust testing:
+
+- **Mock Objects**: `tests/setup/mocks.ts`
+  - Cryptomus API mocking for crypto payment tests
+  - Email service mocking for notification tests
+  - Blockchain network mocking for transaction tests
+  
+- **Admin Utilities**: `tests/setup/adminSetup.ts`
+  - Admin user creation and cleanup
+  - JWT token generation for authenticated tests
+  - Test data fixtures and helpers
+  
+- **Environment Helpers**: `tests/setup/testEnv.ts`
+  - Environment variable loading and validation
+  - CI/CD detection
+  - Service availability checks
+
+### Test Configuration
+
+- **Environment**: Uses `.env.test` with mock-friendly defaults
+- **Database**: Separate test database (`advancia_payledger_test`)
+- **Execution**: Serial execution to avoid race conditions
+- **Cleanup**: Automatic database cleanup before/after tests
+
+### Writing Tests
+
+```typescript
+// Example: Using test infrastructure
+import { createTestAdmin, generateAdminToken } from './setup/adminSetup';
+import { mockCryptomusAPI, resetAllMocks } from './setup/mocks';
+
+describe('Your Feature', () => {
+  let adminToken: string;
+
+  beforeAll(async () => {
+    const admin = await createTestAdmin();
+    adminToken = generateAdminToken(admin.id);
+  });
+
+  afterEach(() => {
+    resetAllMocks();
+  });
+
+  it('should work', async () => {
+    const res = await request(app)
+      .get('/api/endpoint')
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.status).toBe(200);
+  });
+});
+```
+
+**For detailed test documentation**, see:
+- `TEST_IMPLEMENTATION_GUIDE.md` - Comprehensive implementation guide
+- `QUICK_TEST_REFERENCE.md` - Quick reference card
+- `tests/README.md` - Test suite documentation
 
 ### Manual API Testing
 
