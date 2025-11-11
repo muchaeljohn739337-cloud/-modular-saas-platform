@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 /**
  * Health Check API Route
@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * 
  * Returns the health status of the application including uptime, timestamp, and memory usage.
  */
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const uptime = process.uptime();
     const memoryUsage = process.memoryUsage();

@@ -57,9 +57,8 @@ export default function SummaryCard({
       initial={{ opacity: 0, scale: 0.9, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ delay, type: 'spring', stiffness: 200 }}
-      whileHover={{ 
-        scale: 1.03,
-        boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)'
+      whileHover={{
+        scale: 1.03
       }}
       onClick={onClick}
       className={`

@@ -950,6 +950,31 @@ model AdminUserNote {
   @@map("admin_user_notes")
 }
 
+model AnalyticsEvent {
+  id             String   @id @default(uuid())
+  userId         String?
+  sessionId      String?
+  eventName      String
+  eventProperties Json?
+  userProperties Json?
+  deviceInfo     Json?
+  timestamp      DateTime @default(now())
+  ipAddress      String?
+  userAgent      String?
+  referrer       String?
+  url            String?
+  platform       String?
+  appVersion     String?
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+  @@index([eventName])
+  @@index([timestamp])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("analytics_events")
+}
+
 
 
 enum Currency {

@@ -30,7 +30,7 @@ export default function MaintenancePage() {
       if (response.ok) {
         window.location.href = "/";
       }
-    } catch (error) {
+    } catch {
       console.log("Still in maintenance");
     } finally {
       setIsChecking(false);
@@ -92,7 +92,7 @@ export default function MaintenancePage() {
               transition={{ delay: 0.2 }}
               className="text-5xl md:text-6xl font-bold"
             >
-              We'll Be Right Back! 🚀
+              We&apos;ll Be Right Back! 🚀
             </motion.h1>
 
             <motion.p
@@ -101,7 +101,7 @@ export default function MaintenancePage() {
               transition={{ delay: 0.4 }}
               className="text-2xl text-blue-200"
             >
-              We're making Advancia Pay even better for you
+              We&apos;re making Advancia Pay even better for you
             </motion.p>
 
             <motion.p
@@ -111,7 +111,7 @@ export default function MaintenancePage() {
               className="text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed"
             >
               Our platform is currently undergoing scheduled maintenance to
-              bring you exciting new features and improvements. Don't worry—your
+              bring you exciting new features and improvements. Don&apos;t worry—your
               account and data are completely safe! ✨
             </motion.p>
           </div>

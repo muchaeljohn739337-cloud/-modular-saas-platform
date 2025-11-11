@@ -104,14 +104,13 @@ export default function LoadingSpinner({
 
         {/* Shimmer Effect */}
         <motion.div
-          className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white to-transparent"
+          className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white to-transparent opacity-50"
           animate={{ x: ["-100%", "200%"] }}
           transition={{
             duration: 2,
             repeat: Infinity,
             ease: "linear"
           }}
-          style={{ opacity: 0.5 }}
         />
       </div>
     </div>

@@ -25,7 +25,7 @@ export function initSentry(): void {
 
     // This sets the sample rate to be 10%. You may want this to be 100% while
     // in development and sample at a lower rate in production
-    replaysSessionSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    replaysSessionSampleRate: process.env.NODE_ENV === 'production' ? 0.05 : 1.0,
 
     // You can remove this option if you're not planning to use the Sentry Session Replay feature:
     integrations: [

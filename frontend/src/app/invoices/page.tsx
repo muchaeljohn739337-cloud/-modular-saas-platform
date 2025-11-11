@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 
 interface Invoice {
@@ -20,11 +20,7 @@ export default function InvoicesPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
 
-  useEffect(() => {
-    fetchInvoices();
-  }, [filter]);
-
-  const fetchInvoices = async () => {
+  const fetchInvoices = useCallback(async () => {
     try {
       // TODO: Replace with actual userId from auth context
       const userId = 'demo-user-id';
@@ -37,7 +33,11 @@ export default function InvoicesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    fetchInvoices();
+  }, [filter, fetchInvoices]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

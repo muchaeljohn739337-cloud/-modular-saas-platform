@@ -32,7 +32,8 @@ export default function SplashScreen() {
                 style={{
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
-                }}
+                  opacity: 0.3
+                } as any}
                 animate={{
                   y: [0, -30, 0],
                   opacity: [0.2, 0.8, 0.2],

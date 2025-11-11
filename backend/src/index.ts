@@ -8,7 +8,7 @@ import cors from "cors";
 import { Server as SocketIOServer } from "socket.io";
 import jwt from "jsonwebtoken";
 import app from "./app";
-import { config } from "./config";
+import { dataMasker } from "./utils/dataMasker";
 import { initSentry } from "./utils/sentry";
 import { setSocketIO as setNotificationSocket } from "./services/notificationService";
 import { setTransactionSocketIO } from "./routes/transactions";
@@ -50,6 +50,7 @@ import tokensEnhancedRouter from "./routes/tokensEnhanced";
 import rewardsRouter from "./routes/rewards";
 import gamificationRouter from "./routes/gamification";
 import analyticsEnhancedRouter from "./routes/analyticsEnhanced";
+import amplitudeAnalyticsRouter from "./routes/amplitudeAnalytics";
 import healthReadingsRouter from "./routes/health-readings";
 import oalRouter, { setOALSocketIO } from "./routes/oal";
 import userApprovalRouter from "./routes/userApproval";
@@ -62,8 +63,9 @@ import sendEmailRouter from "./routes/send-email"; // Universal email sending
 import webhooksRouter from "./routes/webhooks"; // Resend webhook handlers
 import passwordRecoveryRouter from "./routes/passwordRecovery"; // Password recovery & user details
 import emailSignupRouter from "./routes/emailSignup"; // Email magic link signup
-import { activityLogger } from "./middleware/activityLogger";
-import { rateLimit, validateInput } from "./middleware/security";
+import helmet from "helmet";
+import { validateInput, securityHeaders } from "./middleware/security";
+import { sanitizeInput } from "./validation/middleware";
 import { handleStripeWebhook, setPaymentsSocketIO } from "./routes/payments";
 import { activeSessions } from "./routes/authAdmin";
 import { requireAdmin, authenticateToken } from "./middleware/auth";
@@ -101,6 +103,9 @@ app.post(
 
 // JSON parser and common middlewares AFTER webhook
 app.use(express.json());
+app.use(helmet(securityHeaders));
+app.use(sanitizeInput);
+app.use(dataMasker.createResponseSanitizer());
 app.use(validateInput);
 app.use(activityLogger);
 app.use("/api", rateLimit({ windowMs: 60_000, maxRequests: 300 }));
@@ -125,6 +130,7 @@ app.use("/api/auth", authRouter);
 // Admin routes - PROTECTED with requireAdmin middleware
 app.use("/api/admin/analytics", authenticateToken, requireAdmin, analyticsRouter);
 app.use("/api/analytics", authenticateToken, analyticsEnhancedRouter); // Enhanced analytics with export
+app.use("/api/analytics", authenticateToken, amplitudeAnalyticsRouter); // Amplitude-style analytics
 app.use("/api/admin/security", authenticateToken, requireAdmin, securityLevelRouter);
 app.use("/api/admin/ip-blocks", authenticateToken, requireAdmin, ipBlocksRouter);
 app.use("/api/admin/user-approval", authenticateToken, requireAdmin, userApprovalRouter);
@@ -256,8 +262,14 @@ app.use(errorHandler);
 
 // Start server
 const PORT = config.port || process.env.PORT || 5000;
+
+// Run environment inspection
+envInspector.logInspection();
+
 server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`📡 Socket.IO enabled for real-time notifications`);
+  console.log(`🔒 Security middleware active`);
 });
 
 

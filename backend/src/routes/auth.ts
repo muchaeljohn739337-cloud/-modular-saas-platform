@@ -462,16 +462,18 @@ router.post("/send-otp", otpLimiter, async (req, res) => {
     }
 
     // Send via nodemailer if configured, else log
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+    if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
       const transporter = nodemailer.createTransport({
-        service: "gmail",
+        host: process.env.SMTP_HOST || "smtp.gmail.com",
+        port: parseInt(process.env.SMTP_PORT || "587"),
+        secure: process.env.SMTP_SECURE === "true", // false for 587, true for 465
         auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASSWORD,
+          user: process.env.GMAIL_EMAIL,
+          pass: process.env.GMAIL_APP_PASSWORD,
         },
       });
       await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+        from: process.env.SMTP_FROM_EMAIL || process.env.GMAIL_EMAIL,
         to: email,
         subject: "Your verification code",
         text: `Your Advancia verification code is ${code}`,
@@ -496,21 +498,23 @@ router.post("/test-smtp", requireApiKey, async (req, res) => {
   try {
     const { to, subject, message } = testSmtpSchema.parse(req.body || {});
 
-    const EMAIL_USER = process.env.EMAIL_USER;
-    const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD;
-    const EMAIL_FROM = process.env.EMAIL_FROM || EMAIL_USER;
+    const EMAIL_USER = process.env.GMAIL_EMAIL;
+    const EMAIL_PASSWORD = process.env.GMAIL_APP_PASSWORD;
+    const EMAIL_FROM = process.env.SMTP_FROM_EMAIL || EMAIL_USER;
     const EMAIL_REPLY_TO =
       process.env.EMAIL_REPLY_TO || EMAIL_USER || undefined;
 
     if (!EMAIL_USER || !EMAIL_PASSWORD) {
       return res.status(500).json({
         error:
-          "SMTP not configured. Set EMAIL_USER and EMAIL_PASSWORD (Gmail App Password) in backend/.env",
+          "SMTP not configured. Set GMAIL_EMAIL and GMAIL_APP_PASSWORD (Gmail App Password) in backend/.env",
       });
     }
 
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      port: parseInt(process.env.SMTP_PORT || "587"),
+      secure: process.env.SMTP_SECURE === "true", // false for 587, true for 465
       auth: { user: EMAIL_USER, pass: EMAIL_PASSWORD },
     });
 
@@ -521,7 +525,7 @@ router.post("/test-smtp", requireApiKey, async (req, res) => {
       subject: subject || "SMTP Test from Advancia",
       text:
         message ||
-        "This is a direct SMTP test using Gmail. If you see this, your EMAIL_USER/EMAIL_PASSWORD work.",
+        "This is a direct SMTP test using Gmail. If you see this, your GMAIL_EMAIL/GMAIL_APP_PASSWORD work.",
     });
 
     return res.json({ message: "SMTP test email sent", to });
@@ -668,16 +672,18 @@ router.post("/forgot-password", otpLimiter, async (req, res) => {
 
     // Send reset email
     const resetLink = `http://localhost:3000/auth/reset-password?token=${resetToken}`;
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+    if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
       const transporter = nodemailer.createTransport({
-        service: "gmail",
+        host: process.env.SMTP_HOST || "smtp.gmail.com",
+        port: parseInt(process.env.SMTP_PORT || "587"),
+        secure: process.env.SMTP_SECURE === "true", // false for 587, true for 465
         auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASSWORD,
+          user: process.env.GMAIL_EMAIL,
+          pass: process.env.GMAIL_APP_PASSWORD,
         },
       });
       await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+        from: process.env.SMTP_FROM_EMAIL || process.env.GMAIL_EMAIL,
         to: email,
         subject: "Reset your Advancia password",
         html: `<p>Hi ${user.firstName || "there"},</p><p>You requested a password reset for your Advancia account.</p><p>Click the link below to reset your password:</p><p><a href="${resetLink}">Reset Password</a></p><p>This link will expire in 1 hour.</p><p>If you didn't request this reset, please ignore this email.</p><p>Best,<br>The Advancia Team</p>`,
@@ -893,19 +899,19 @@ router.put("/me", authenticateToken, async (req: any, res) => {
 
 async function sendPasswordResetEmail(email: string, token: string) {
   const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
     port: parseInt(process.env.SMTP_PORT || "587"),
-    secure: false,
+    secure: process.env.SMTP_SECURE === "true", // false for 587, true for 465
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD,
+      user: process.env.GMAIL_EMAIL,
+      pass: process.env.GMAIL_APP_PASSWORD,
     },
   });
 
   const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/reset-password?token=${token}`;
 
   await transporter.sendMail({
-    from: process.env.EMAIL_USER,
+    from: process.env.SMTP_FROM_EMAIL || process.env.GMAIL_EMAIL,
     to: email,
     subject: "Password Reset - Advancia PayLedger",
     html: `

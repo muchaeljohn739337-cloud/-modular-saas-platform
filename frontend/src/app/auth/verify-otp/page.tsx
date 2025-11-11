@@ -114,7 +114,7 @@ export default function VerifyOtpPage() {
             Verify your email
           </h1>
           <p className="text-gray-600">
-            We'll send a 6-digit code to your email
+            We&apos;ll send a 6-digit code to your email
           </p>
         </div>
 
@@ -223,7 +223,7 @@ export default function VerifyOtpPage() {
             </h2>
             <p className="text-gray-600">
               Your email has been verified. If this is a new account, please
-              wait for an admin to approve your registration. We'll notify you
+              wait for an admin to approve your registration. We&apos;ll notify you
               by email.
             </p>
             <button

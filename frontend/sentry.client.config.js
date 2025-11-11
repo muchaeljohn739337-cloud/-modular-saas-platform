@@ -1,33 +1,34 @@
 import * as Sentry from "@sentry/nextjs";
-import { replayIntegration } from "@sentry/nextjs";
 
-Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+// Only initialize Sentry on the client side in production
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+  Sentry.init({
+    dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
-  // Adjust this value in production, or use tracesSampler for greater control
-  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+    // Adjust this value in production, or use tracesSampler for greater control
+    tracesSampleRate: 0.1,
 
-  // Setting this option to true will print useful information to the console while you're setting up Sentry.
-  debug: process.env.NODE_ENV === "development",
+    // Setting this option to true will print useful information to the console while you're setting up Sentry.
+    debug: false,
 
-  replaysOnErrorSampleRate: 1.0,
+    replaysOnErrorSampleRate: 0.1,
 
-  // This sets the sample rate to be 10%. You may want this to be 100% while
-  // in development and sample at a lower rate in production
-  replaysSessionSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+    // This sets the sample rate to be 10%. You may want this to be 100% while
+    // in development and sample at a lower rate in production
+    replaysSessionSampleRate: 0.05,
 
-  // You can remove this option if you're not planning to use the Sentry Session Replay feature:
-  integrations: [
-    replayIntegration({
-      // Additional Replay configuration goes in here, for example:
-      maskAllText: true,
-      blockAllMedia: true,
-    }),
-  ],
+    // You can remove this option if you're not planning to use the Sentry Session Replay feature:
+    integrations: [
+      Sentry.replayIntegration({
+        // Additional Replay configuration goes in here, for example:
+        maskAllText: true,
+        blockAllMedia: true,
+      }),
+    ],
 
-  // Release tracking
-  release: process.env.npm_package_version || "1.0.0",
+    // Release tracking
+    release: process.env.npm_package_version || "1.0.0",
 
-  environment: process.env.NODE_ENV || "development",
-});
-
+    environment: "production",
+  });
+}

@@ -30,9 +30,20 @@ jobs:
           RESP=$(curl -s -X POST \
             -H "Accept: application/json" \
             -H "Authorization: Bearer $RENDER_API_KEY" \
+            -w "\nHTTP_STATUS:%{http_code}" \
             https://api.render.com/v1/services/$RENDER_SERVICE_ID/jobs/$RENDER_BACKUP_JOB_ID/runs)
-          echo "$RESP" | jq . > run.json
-          RUN_ID=$(jq -r .id run.json)
+          
+          HTTP_STATUS=$(echo "$RESP" | grep "HTTP_STATUS:" | cut -d: -f2)
+          BODY=$(echo "$RESP" | sed '/HTTP_STATUS:/d')
+          
+          if [ "$HTTP_STATUS" -eq 201 ]; then
+            echo "$BODY" | jq . > run.json
+            RUN_ID=$(jq -r .id run.json)
+          else
+            echo "Backup job trigger failed with status $HTTP_STATUS"
+            echo "Response: $BODY"
+            exit 1
+          fi
           if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
             echo "Failed to start Render backup job." >&2
             exit 2

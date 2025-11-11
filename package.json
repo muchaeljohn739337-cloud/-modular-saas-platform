@@ -20,6 +20,7 @@
     "build:backend": "cd backend && npm run build",
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces",
+    "type-check": "npm run type-check --workspaces",
     "start": "cd frontend && npm start"
   },
   "engines": {
@@ -35,7 +36,18 @@
   ],
   "author": "",
   "license": "MIT",
+  "resolutions": {
+    "typescript": "^5.9.3",
+    "@types/react": "^18.2.14",
+    "@types/react-dom": "^18.2.7",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
   "devDependencies": {
     "sharp": "^0.34.4"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "redis": "^5.9.0"
   }
 }

@@ -3,12 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type AuthMethod = "email";
 type Step = "enter-identifier" | "enter-code";
 
 export default function OtpLogin() {
   const [step, setStep] = useState<Step>("enter-identifier");
-  const [authMethod] = useState<AuthMethod>("email"); // Fixed to email only
   const [identifier, setIdentifier] = useState(""); // email
   const [code, setCode] = useState("");
   const [error, setError] = useState("");

@@ -149,7 +149,7 @@ export default function PendingApprovalPage() {
               </li>
               <li className="flex items-start">
                 <span className="text-purple-400 mr-2">•</span>
-                <span>You'll receive an email notification once approved</span>
+                <span>You&apos;ll receive an email notification once approved</span>
               </li>
               <li className="flex items-start">
                 <span className="text-purple-400 mr-2">•</span>
@@ -165,7 +165,7 @@ export default function PendingApprovalPage() {
           {/* Benefits Grid */}
           <div className="mb-8">
             <h3 className="text-2xl font-bold text-white mb-6 text-center">
-              While You Wait, Here's What You'll Get
+              While You Wait, Here&apos;s What You&apos;ll Get
             </h3>
             <div className="grid md:grid-cols-2 gap-4">
               {benefits.map((benefit, index) => (

@@ -9,7 +9,6 @@ const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 function BookingSuccessContent() {
   const searchParams = useSearchParams();
   const bookingId = searchParams.get("booking_id");
-  const sessionId = searchParams.get("session_id");
 
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);

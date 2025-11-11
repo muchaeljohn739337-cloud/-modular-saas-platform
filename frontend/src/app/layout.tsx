@@ -9,6 +9,16 @@ import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import ChatbotWidget from "@/components/ChatbotWidget";
 import SilentModeProvider from "@/components/SilentModeProvider";
 import SplashScreen from "@/components/SplashScreen";
+// import dynamic from "next/dynamic";
+
+// Dynamically import AdvanciaAIWidget to avoid SSR issues
+// const AdvanciaAIWidget = dynamic(() => import("@/components/AdvanciaAIWidget"), {
+//   ssr: false,
+//   loading: () => null,
+// });
+
+// Force dynamic rendering to avoid SSR issues
+export const dynamic = 'force-dynamic';
 
 export const viewport: Viewport = {
   themeColor: "#2563eb",
@@ -51,6 +61,8 @@ export default function RootLayout({
             <ServiceWorkerRegistration />
             {children}
             <ChatbotWidget />
+            {/* Advancia AI chat widget - temporarily disabled for build testing */}
+            {/* <AdvanciaAIWidget /> */}
           </AuthProvider>
         </ErrorBoundary>
       </body>

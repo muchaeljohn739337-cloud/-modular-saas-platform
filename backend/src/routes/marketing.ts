@@ -7,10 +7,12 @@ const router = express.Router();
 // Configure Mailchimp (Transactional via SMTP in this example)
 // For production: use Mailchimp API directly or SMTP integration
 const transporter = nodemailer.createTransport({
-  service: process.env.EMAIL_SERVICE || "gmail",
+  host: process.env.SMTP_HOST || "smtp.gmail.com",
+  port: parseInt(process.env.SMTP_PORT || "587"),
+  secure: process.env.SMTP_SECURE === "true", // false for 587, true for 465
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
+    user: process.env.GMAIL_EMAIL,
+    pass: process.env.GMAIL_APP_PASSWORD,
   },
 });
 
@@ -53,10 +55,10 @@ router.post("/subscribe", async (req: Request, res: Response) => {
     });
 
     // Send confirmation email (optional)
-    if (process.env.EMAIL_USER) {
+    if (process.env.GMAIL_EMAIL) {
       try {
         await transporter.sendMail({
-          from: process.env.EMAIL_USER,
+          from: process.env.SMTP_FROM_EMAIL || process.env.GMAIL_EMAIL,
           to: email,
           subject: "Welcome to Advancia Pay Ledger Newsletter!",
           html: `

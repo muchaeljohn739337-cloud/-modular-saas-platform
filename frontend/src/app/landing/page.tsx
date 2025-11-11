@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronDown, Shield, Zap, TrendingUp, Lock, Globe, Award, ArrowRight, CheckCircle, DollarSign, Bitcoin, Wallet, CreditCard } from "lucide-react";
+import { ChevronDown, Shield, Zap, TrendingUp, Lock, Globe, Award, ArrowRight, CheckCircle, DollarSign, Bitcoin, Wallet } from "lucide-react";
 import Link from "next/link";
 
 export default function LandingPage() {
@@ -445,7 +445,7 @@ export default function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Questions? <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">We've Got Answers</span>
+              Questions? <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">We&apos;ve Got Answers</span>
             </h2>
             <p className="text-xl text-gray-400">Everything you need to know about Advancia</p>
           </motion.div>
@@ -495,7 +495,7 @@ export default function LandingPage() {
             <Shield className="w-16 h-16 text-green-400 mx-auto mb-4" />
             <h3 className="text-2xl font-bold text-white mb-2">30-Day Money-Back Guarantee</h3>
             <p className="text-gray-300 mb-4">
-              Try Advancia risk-free. If you're not 100% satisfied within 30 days, we'll refund your entire deposit. 
+              Try Advancia risk-free. If you&apos;re not 100% satisfied within 30 days, we&apos;ll refund your entire deposit. 
               No questions. No hassle. Just your money back.
             </p>
             <div className="inline-flex items-center space-x-2 text-green-400 font-semibold">

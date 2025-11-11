@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { CheckCircle, Clock, Home, Receipt, CreditCard, Bitcoin } from "lucide-react";
@@ -15,19 +15,7 @@ function PaymentSuccessContent() {
   const sessionId = searchParams.get("session_id");
   const invoiceId = searchParams.get("invoice_id");
 
-  useEffect(() => {
-    checkPayment();
-    const interval = setInterval(checkPayment, 5000);
-    return () => clearInterval(interval);
-  }, [sessionId, invoiceId]);
-
-  useEffect(() => {
-    if (status === "confirmed") {
-      setTimeout(() => router.push("/dashboard"), 5000);
-    }
-  }, [status]);
-
-  const checkPayment = async () => {
+  const checkPayment = useCallback(async () => {
     const token = localStorage.getItem("token");
     
     if (sessionId) {
@@ -53,7 +41,19 @@ function PaymentSuccessContent() {
         setStatus("pending"); // Crypto requires admin approval
       }
     }
-  };
+  }, [sessionId, invoiceId]);
+
+  useEffect(() => {
+    checkPayment();
+    const interval = setInterval(checkPayment, 5000);
+    return () => clearInterval(interval);
+  }, [checkPayment]);
+
+  useEffect(() => {
+    if (status === "confirmed") {
+      setTimeout(() => router.push("/dashboard"), 5000);
+    }
+  }, [status, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center p-4">

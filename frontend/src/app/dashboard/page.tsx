@@ -7,6 +7,10 @@ import BalanceOverview from "@/components/BalanceOverview";
 import QuickActions from "@/components/QuickActions";
 import RecentTransactions from "@/components/RecentTransactions";
 
+// Force dynamic rendering and use edge runtime to avoid static generation
+export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
+
 function DashboardPage() {
   const [userName, setUserName] = useState("User");
   const [pendingOrders, setPendingOrders] = useState(0);

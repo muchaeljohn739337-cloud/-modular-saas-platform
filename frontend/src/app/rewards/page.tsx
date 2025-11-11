@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import {
   Trophy,
   Star,
-  TrendingUp,
   Award,
   Gift,
   Crown,
@@ -361,7 +360,7 @@ export default function RewardsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
                 { name: "First Transaction", desc: "Complete your first transaction", points: 100, achieved: true },
-                { name: "Week Warrior", desc: "7-day login streak", points: 250, achieved: tierInfo?.tier.streak! >= 7 },
+                { name: "Week Warrior", desc: "7-day login streak", points: 250, achieved: (tierInfo?.tier.streak || 0) >= 7 },
                 { name: "High Roller", desc: "Transaction over $1000", points: 500, achieved: false },
                 { name: "Social Butterfly", desc: "Refer 5 friends", points: 1000, achieved: (tierInfo?.tier.totalReferrals || 0) >= 5 },
                 { name: "Token Master", desc: "Earn 10,000 tokens", points: 2000, achieved: (tierInfo?.tier.lifetimePoints || 0) >= 10000 },

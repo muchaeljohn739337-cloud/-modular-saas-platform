@@ -26,7 +26,7 @@ function ResetPasswordForm() {
       } else {
         setToast('❌ ' + (data.error || 'Failed to reset password'))
       }
-    } catch (err) {
+    } catch {
       setToast('❌ Network error while resetting password')
     }
     setStatus('')

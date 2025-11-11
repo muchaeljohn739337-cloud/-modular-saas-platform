@@ -304,7 +304,7 @@ export default function TokensPage() {
                 />
                 {cashoutAmount && (
                   <p className="text-sm text-green-300 mt-2">
-                    You'll receive: ${(parseFloat(cashoutAmount) * conversionRate).toFixed(2)} USD
+                    You&apos;ll receive: ${(parseFloat(cashoutAmount) * conversionRate).toFixed(2)} USD
                   </p>
                 )}
               </div>

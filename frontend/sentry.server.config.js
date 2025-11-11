@@ -4,9 +4,9 @@ Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
   // Adjust this value in production, or use tracesSampler for greater control
-  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+  tracesSampleRate: 0.1,
 
-  environment: process.env.NODE_ENV || "development",
+  environment: "production",
 
   // Release tracking
   release: process.env.npm_package_version || "1.0.0",
