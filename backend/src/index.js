@@ -5,6 +5,7 @@ import { runMigrations } from "./db.js";
 import {
     errorHandler,
     initMonitoring,
+    requestMetrics,
     securityHeaders,
 } from "./middleware/protection.js";
 import authRoutes from "./routes/auth.js";

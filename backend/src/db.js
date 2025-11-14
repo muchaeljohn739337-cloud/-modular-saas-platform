@@ -21,16 +21,25 @@ export async function query(sql, params) {
 export async function runMigrations() {
   const fs = await import("fs");
   const path = await import("path");
-  const dir = path.resolve("migrations");
+  const url = await import("url");
+  const dir = path.resolve("backend/migrations");
   const files = fs
     .readdirSync(dir)
-    .filter((f) => f.endsWith(".sql"))
+    .filter((f) => f.endsWith(".sql") || f.endsWith(".js"))
     .sort();
 
   for (const file of files) {
-    const sql = fs.readFileSync(path.join(dir, file), "utf8");
-    console.log(`Running migration: ${file}`);
-    await query(sql);
+    if (file.endsWith(".sql")) {
+      const sql = fs.readFileSync(path.join(dir, file), "utf8");
+      console.log(`Running SQL migration: ${file}`);
+      await query(sql);
+    } else if (file.endsWith(".js")) {
+      console.log(`Running JS migration: ${file}`);
+      const migration = await import(url.pathToFileURL(path.join(dir, file)));
+      if (migration.up) {
+        await migration.up(pool);
+      }
+    }
   }
   console.log("Migrations complete");
 }
