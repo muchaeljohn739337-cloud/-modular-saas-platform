@@ -4,9 +4,9 @@ import jwt from "jsonwebtoken";
 import speakeasy from "speakeasy";
 import { query } from "../db.js";
 import {
-    loginLimiter,
-    sanitizeUser,
-    userSchema,
+  loginLimiter,
+  sanitizeUser,
+  userSchema,
 } from "../middleware/protection.js";
 const router = Router();
 
@@ -40,15 +40,49 @@ router.post("/login", loginLimiter, async (req, res) => {
     return res.status(400).json({ error: "Email and password required" });
 
   const result = await query(
-    "SELECT id, email, role, password_hash FROM users WHERE email=$1",
+    "SELECT id, email, role, password_hash, failed_attempts, locked_until, last_login_at FROM users WHERE email=$1",
     [email],
   );
   if (result.rowCount === 0)
     return res.status(401).json({ error: "Invalid credentials" });
 
   const user = result.rows[0];
+
+  // Check if account is locked
+  if (user.locked_until && new Date() < new Date(user.locked_until)) {
+    return res.status(423).json({
+      error: "Account locked due to too many failed attempts",
+      locked_until: user.locked_until
+    });
+  }
+
   const ok = await bcrypt.compare(password, user.password_hash);
-  if (!ok) return res.status(401).json({ error: "Invalid credentials" });
+  if (!ok) {
+    // Increment failed attempts
+    const newFailedAttempts = (user.failed_attempts || 0) + 1;
+    let lockedUntil = null;
+
+    // Lock account if too many failed attempts (5 attempts = 15 minute lock)
+    if (newFailedAttempts >= 5) {
+      lockedUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    }
+
+    await query(
+      "UPDATE users SET failed_attempts = $1, locked_until = $2 WHERE id = $3",
+      [newFailedAttempts, lockedUntil, user.id]
+    );
+
+    return res.status(401).json({
+      error: "Invalid credentials",
+      remaining_attempts: Math.max(0, 5 - newFailedAttempts)
+    });
+  }
+
+  // Successful login - reset failed attempts and update last login
+  await query(
+    "UPDATE users SET failed_attempts = 0, locked_until = NULL, last_login_at = CURRENT_TIMESTAMP WHERE id = $1",
+    [user.id]
+  );
 
   const token = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
@@ -67,16 +101,43 @@ router.post("/admin-login", loginLimiter, async (req, res) => {
     return res.status(400).json({ error: "Email and password required" });
 
   const result = await query(
-    "SELECT id, email, role, password_hash, totp_secret, totp_enabled, backup_codes FROM users WHERE email=$1 AND role=$2",
+    "SELECT id, email, role, password_hash, totp_secret, totp_enabled, backup_codes, failed_attempts, locked_until, last_login_at FROM users WHERE email=$1 AND role=$2",
     [email, "admin"],
   );
   if (result.rowCount === 0)
     return res.status(403).json({ error: "Forbidden" });
 
   const user = result.rows[0];
+
+  // Check if account is locked
+  if (user.locked_until && new Date() < new Date(user.locked_until)) {
+    return res.status(423).json({
+      error: "Account locked due to too many failed attempts",
+      locked_until: user.locked_until
+    });
+  }
+
   const passwordValid = await bcrypt.compare(password, user.password_hash);
-  if (!passwordValid)
-    return res.status(401).json({ error: "Invalid credentials" });
+  if (!passwordValid) {
+    // Increment failed attempts for password failure
+    const newFailedAttempts = (user.failed_attempts || 0) + 1;
+    let lockedUntil = null;
+
+    // Lock account if too many failed attempts (5 attempts = 15 minute lock)
+    if (newFailedAttempts >= 5) {
+      lockedUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    }
+
+    await query(
+      "UPDATE users SET failed_attempts = $1, locked_until = $2 WHERE id = $3",
+      [newFailedAttempts, lockedUntil, user.id]
+    );
+
+    return res.status(401).json({
+      error: "Invalid credentials",
+      remaining_attempts: Math.max(0, 5 - newFailedAttempts)
+    });
+  }
 
   let authenticated = false;
 
@@ -88,7 +149,27 @@ router.post("/admin-login", loginLimiter, async (req, res) => {
         encoding: "base32",
         token,
       });
-      if (tokenValid) authenticated = true;
+      if (tokenValid) {
+        authenticated = true;
+      } else {
+        // Increment failed attempts for invalid TOTP
+        const newFailedAttempts = (user.failed_attempts || 0) + 1;
+        let lockedUntil = null;
+
+        if (newFailedAttempts >= 5) {
+          lockedUntil = new Date(Date.now() + 15 * 60 * 1000);
+        }
+
+        await query(
+          "UPDATE users SET failed_attempts = $1, locked_until = $2 WHERE id = $3",
+          [newFailedAttempts, lockedUntil, user.id]
+        );
+
+        return res.status(401).json({
+          error: "Invalid 2FA token",
+          remaining_attempts: Math.max(0, 5 - newFailedAttempts)
+        });
+      }
     } else if (backupCode) {
       // Check backup code
       const hashedCodes = JSON.parse(user.backup_codes || "[]");
@@ -104,6 +185,27 @@ router.post("/admin-login", loginLimiter, async (req, res) => {
           break;
         }
       }
+      if (!authenticated) {
+        // Increment failed attempts for invalid backup code
+        const newFailedAttempts = (user.failed_attempts || 0) + 1;
+        let lockedUntil = null;
+
+        if (newFailedAttempts >= 5) {
+          lockedUntil = new Date(Date.now() + 15 * 60 * 1000);
+        }
+
+        await query(
+          "UPDATE users SET failed_attempts = $1, locked_until = $2 WHERE id = $3",
+          [newFailedAttempts, lockedUntil, user.id]
+        );
+
+        return res.status(401).json({
+          error: "Invalid backup code",
+          remaining_attempts: Math.max(0, 5 - newFailedAttempts)
+        });
+      }
+    } else {
+      return res.status(400).json({ error: "2FA token or backup code required" });
     }
   } else {
     // If 2FA not enabled, just password
@@ -111,7 +213,13 @@ router.post("/admin-login", loginLimiter, async (req, res) => {
   }
 
   if (!authenticated)
-    return res.status(401).json({ error: "Invalid 2FA token or backup code" });
+    return res.status(401).json({ error: "Authentication failed" });
+
+  // Successful login - reset failed attempts and update last login
+  await query(
+    "UPDATE users SET failed_attempts = 0, locked_until = NULL, last_login_at = CURRENT_TIMESTAMP WHERE id = $1",
+    [user.id]
+  );
 
   const jwtToken = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
