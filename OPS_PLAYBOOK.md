@@ -510,6 +510,7 @@ sudo certbot renew
 - [DAY2_OPS_CHECKLIST.md](./DAY2_OPS_CHECKLIST.md) - Ongoing operations checklist
 - [OPS_WALL_CHART.md](./OPS_WALL_CHART.md) - Visual ops timeline
 - [FOUNDERS_OPS_HANDBOOK.md](./FOUNDERS_OPS_HANDBOOK.md) - Consolidated ops guide
+- [POST_LAUNCH_ROADMAP.md](./POST_LAUNCH_ROADMAP.md) - Feature rollout priorities
 
 ### Emergency Contacts
 
