@@ -1,8 +1,8 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import helmet from "helmet";
 import { runMigrations } from "./db.js";
+import { errorHandler, securityHeaders } from "./middleware/protection.js";
 import authRoutes from "./routes/auth.js";
 import healthRoutes from "./routes/health.js";
 
@@ -11,7 +11,8 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(helmet());
+// Apply security headers globally
+securityHeaders(app);
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 
@@ -21,6 +22,9 @@ app.use("/api/auth", authRoutes);
 app.get("/api/me", (req, res) =>
   res.json({ service: "advvancia-backend", version: "1.0.0" }),
 );
+
+// Global error handler (last middleware)
+app.use(errorHandler);
 
 // Run migrations at startup
 runMigrations()

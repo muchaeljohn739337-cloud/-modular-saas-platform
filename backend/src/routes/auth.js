@@ -2,6 +2,11 @@ import bcrypt from "bcrypt";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 import { query } from "../db.js";
+import {
+  loginLimiter,
+  sanitizeUser,
+  userSchema,
+} from "../middleware/protection.js";
 
 const router = Router();
 
@@ -26,10 +31,10 @@ router.post("/signup", async (req, res) => {
     process.env.JWT_SECRET,
     { expiresIn: "7d" },
   );
-  res.status(201).json({ token, user });
+  res.status(201).json({ token, user: sanitizeUser(user) });
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password)
     return res.status(400).json({ error: "Email and password required" });
@@ -52,7 +57,7 @@ router.post("/login", async (req, res) => {
   );
   res.json({
     token,
-    user: { id: user.id, email: user.email, role: user.role },
+    user: userSchema.parse(sanitizeUser(user)),
   });
 });
 
