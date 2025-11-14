@@ -1,77 +1,58 @@
-version: "3.8"
-
+version: "3.9"
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: advancia-postgres
-    restart: unless-stopped
-    ports:
-      - "5432:5432"
+  db:
+    image: postgres:15
+    container_name: advvancia_db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: advancia_payledger
-      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: advvancia
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./backend/scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d advancia_payledger"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - db_data:/var/lib/postgresql/data
     networks:
-      - advancia-network
+      - app_net
 
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: advancia-redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes --requirepass devpassword
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "devpassword", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-    networks:
-      - advancia-network
-
-  # Optional: Prometheus for monitoring
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: advancia-prometheus
-    restart: unless-stopped
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--web.console.libraries=/etc/prometheus/console_libraries"
-      - "--web.console.templates=/etc/prometheus/consoles"
-      - "--web.enable-lifecycle"
-    networks:
-      - advancia-network
+  backend:
+    build: ./backend
+    container_name: advvancia_backend
+    env_file:
+      - ./backend/.env
     depends_on:
-      - postgres
-      - redis
+      - db
+    ports:
+      - "4000:4000"
+    networks:
+      - app_net
+
+  frontend:
+    build: ./frontend
+    container_name: advvancia_frontend
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    networks:
+      - app_net
+
+  nginx:
+    image: nginx:stable
+    container_name: advvancia_nginx
+    depends_on:
+      - frontend
+      - backend
+    volumes:
+      - ./nginx/advvancia.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "80:80"
+    networks:
+      - app_net
 
 volumes:
-  postgres_data:
-    driver: local
-  redis_data:
-    driver: local
-  prometheus_data:
-    driver: local
+  db_data:
+
 
 networks:
-  advancia-network:
+  app_net:
     driver: bridge
