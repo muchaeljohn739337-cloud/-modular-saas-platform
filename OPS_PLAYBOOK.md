@@ -508,6 +508,7 @@ sudo certbot renew
 - [DIGITALOCEAN_DROPLET_DEPLOYMENT.md](./DIGITALOCEAN_DROPLET_DEPLOYMENT.md) - Detailed deployment guide
 - [CLOUDFLARE_SECURITY_GUIDE.md](./CLOUDFLARE_SECURITY_GUIDE.md) - Security configuration
 - [DAY2_OPS_CHECKLIST.md](./DAY2_OPS_CHECKLIST.md) - Ongoing operations checklist
+- [OPS_WALL_CHART.md](./OPS_WALL_CHART.md) - Visual ops timeline
 
 ### Emergency Contacts
 

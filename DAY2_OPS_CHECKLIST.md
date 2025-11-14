@@ -1,6 +1,7 @@
 # 🛠️ Day‑2 Ops Checklist (Self‑Hosted SaaS)
 
 ## 🔹 Daily
+
 Check Docker services (docker ps, docker-compose logs -f)
 
 Monitor CPU/memory/disk (DigitalOcean Monitoring)
@@ -12,6 +13,7 @@ Scan Cloudflare Analytics for blocked threats
 Confirm SSL cert validity
 
 ## 🔹 Weekly
+
 Run PostgreSQL backups (pg_dump) and verify restore
 
 Audit backend + Nginx logs for anomalies
@@ -23,6 +25,7 @@ Review Cloudflare WAF & rate limiting rules
 Test CI/CD pipeline (GitHub Actions deploy)
 
 ## 🔹 Monthly
+
 Review Droplet resource usage (resize if needed)
 
 Rotate API keys (Stripe, Plaid, JWT secret)
@@ -34,6 +37,7 @@ Compliance check (GDPR/PCI DSS logs)
 Disaster recovery drill (simulate DB restore)
 
 ## 🔹 Quarterly
+
 Plan feature roadmap (multi‑tenancy, analytics, file uploads)
 
 Infrastructure upgrade (consider Kubernetes migration)
