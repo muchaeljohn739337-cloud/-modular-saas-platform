@@ -2,11 +2,18 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import { runMigrations } from "./db.js";
-import { errorHandler, securityHeaders } from "./middleware/protection.js";
+import {
+  errorHandler,
+  initMonitoring,
+  securityHeaders,
+} from "./middleware/protection.js";
 import authRoutes from "./routes/auth.js";
 import healthRoutes from "./routes/health.js";
 
 dotenv.config();
+
+// Initialize monitoring
+initMonitoring();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
