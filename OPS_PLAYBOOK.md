@@ -509,6 +509,7 @@ sudo certbot renew
 - [CLOUDFLARE_SECURITY_GUIDE.md](./CLOUDFLARE_SECURITY_GUIDE.md) - Security configuration
 - [DAY2_OPS_CHECKLIST.md](./DAY2_OPS_CHECKLIST.md) - Ongoing operations checklist
 - [OPS_WALL_CHART.md](./OPS_WALL_CHART.md) - Visual ops timeline
+- [FOUNDERS_OPS_HANDBOOK.md](./FOUNDERS_OPS_HANDBOOK.md) - Consolidated ops guide
 
 ### Emergency Contacts
 
