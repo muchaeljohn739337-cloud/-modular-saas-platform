@@ -513,6 +513,101 @@ sudo certbot renew
 - [POST_LAUNCH_ROADMAP.md](./POST_LAUNCH_ROADMAP.md) - Feature rollout priorities
 - [NOTION_BOARD_TEMPLATE.md](./NOTION_BOARD_TEMPLATE.md) - Kanban board template for tracking
 
+### Job Execution Patterns
+
+#### GitHub Actions (CI/CD)
+
+```yaml
+name: Advvancia Pipeline
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Docker images
+        run: docker-compose build
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build # ensures deploy only runs after build
+    concurrency: # prevents duplicate runs
+      group: advvancia-deploy
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            cd advvancia
+            git pull origin main
+            docker-compose up -d --build
+```
+
+✅ **Key points**
+
+- `needs:` → ensures jobs run systematically in order.
+- `concurrency:` → avoids duplicate runs (only one deploy job per branch).
+
+#### Node.js Job Runner (Custom Script)
+
+```js
+import Queue from "bull";
+
+const jobQueue = new Queue("advvancia-jobs");
+
+// Prevent duplicate jobs by using jobId
+function addJob(name, data) {
+  return jobQueue.add(name, data, { jobId: `${name}-${data.id}` });
+}
+
+// Worker
+jobQueue.process("deploy", async (job) => {
+  console.log("Running deploy job:", job.id);
+  // run deployment script here
+});
+
+await addJob("deploy", { id: "main-branch" });
+```
+
+✅ **Key points**
+
+- `jobId` ensures duplicates are skipped.
+- Queue enforces systematic execution.
+
+#### Bash Script with Lockfile
+
+```bash
+#!/bin/bash
+LOCKFILE="/tmp/advvancia.lock"
+
+if [ -f "$LOCKFILE" ]; then
+  echo "Job already running. Exiting."
+  exit 1
+fi
+
+trap "rm -f $LOCKFILE" EXIT
+touch $LOCKFILE
+
+echo "Running job systematically..."
+# your job steps here
+```
+
+✅ **Key points**
+
+- Lockfile prevents duplicate runs.
+- Trap cleans up lockfile after job finishes.
+
+⚡ **Recommendation**: For SaaS deployment via GitHub → Droplet, use the **GitHub Actions approach with `concurrency`** for systematic, duplicate-free execution.
+
 ### Emergency Contacts
 
 - **Infrastructure Issues**: DigitalOcean support

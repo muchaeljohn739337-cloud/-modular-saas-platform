@@ -5,14 +5,21 @@ on:
     branches: ["main"]
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: Build Docker Images
+      - name: Build Docker images
         run: docker-compose build
 
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build # ensures deploy only runs after build
+    concurrency: # prevents duplicate runs
+      group: advvancia-deploy
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v3
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
