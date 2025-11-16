@@ -10,6 +10,7 @@ It provides authentication, payments, dashboards, and monitoring — ready for p
 ![Advvancia Architecture](docs/architecture.png)
 
 **Stack Overview:**
+
 - **Frontend** → React + Next.js (Dockerized, served via Nginx)
 - **Backend** → Node.js + Express (Dockerized, API on port 4000)
 - **Database** → PostgreSQL
@@ -25,6 +26,7 @@ It provides authentication, payments, dashboards, and monitoring — ready for p
 
 See [Deployment Checklist](docs/deployment-checklist.md) for the full step‑by‑step guide.
 Key phases:
+
 1. **Droplet Setup** → Ubuntu, SSH, UFW firewall
 2. **Dependencies** → Node.js, PostgreSQL, PM2, Nginx
 3. **Project Setup** → Clone repo, .env files, install deps
@@ -35,10 +37,58 @@ Key phases:
 
 ---
 
-## ⚡ Quick Start (Local Dev)
+# ⚡ Quick Start (Local Dev)
 
-`ash
-# Build and start everything
+`\bash
+
+```
+
+
+## 🤖 AI Development Agents (GitHub Copilot)
+
+This project uses a suite of custom GitHub Copilot Agents to automate code
+quality, testing, documentation, DevOps, and architectural consistency.
+
+All agents live in `.github/copilot/agents/` and can be used in Copilot Chat
+with @agent-name.
+
+### Available Agents
+
+| Agent | Purpose |
+|-------|---------|
+| *@saas-fixer* | General issue scanning and safe code fixes. |
+| *@saas-security* | Security scanning, JWT/session review, tenant isolation. |
+| *@saas-ui-fixer* | React/Next.js UI debugging + component fixes. |
+| *@saas-api-sync* | Keeps backend API and frontend client in sync. |
+| *@saas-architect* | Enforces clean architecture & folder structure. |
+| *@saas-tests* | Generates backend + frontend tests. |
+| *@saas-docs* | Creates and updates documentation. |
+| *@saas-devops* | Docker, CI/CD, pipeline optimization. |
+| *@saas-migrations* | Validates DB migrations for safety + consistency. |
+| *@saas-performance* | Finds backend/frontend performance issues. |
+| *@saas-release* | Handles versioning, changelogs, and releases. |
+| *@saas-errors* | Standardizes error-handling & logging. |
+
+### How to Use Agents
+
+Open Copilot Chat and type commands like:
+
+@saas-fixer scan the workspace
+@saas-security check auth flow for vulnerabilities
+@saas-ui-fixer fix the BillingForm component
+@saas-api-sync compare backend routes with frontend client
+@saas-tests create tests for userController
+@saas-devops optimize docker build
+
+These agents automate a large portion of engineering workflows, ensuring
+consistency, security, and development speed.
+
+---
+
+### 🟢 Onboarding Shortcuts
+
+- [Copilot Agent Workflow Diagram](.github/COPILOT_AGENT_WORKFLOW_DIAGRAM.md): Visual guide to agent usage and best practices
+- [First Day Developer Checklist](.github/FIRST_DAY_CHECKLIST.md): Step-by-step onboarding for new team members
 docker-compose up -d --build
 
 # Stop all services
@@ -76,3 +126,4 @@ See .env.example for required keys (JWT_SECRET, STRIPE keys, Plaid keys, DB URL)
 ## 📜 License
 
 MIT License — free to use and modify with attribution.
+```
