@@ -2,9 +2,9 @@ name: CI (pnpm checks)
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
   push:
-    branches: [ main, '**' ]
+    branches: [main, "**"]
 
 jobs:
   type-lint:
@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install pnpm
         run: npm install -g pnpm
