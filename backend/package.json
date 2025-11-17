@@ -14,7 +14,7 @@
     "pm2:monit": "pm2 monit",
     "migrate": "node src/index.js migrate",
     "seed": "node src/seed.js",
-    "test": "cross-env NODE_ENV=test jest --config jest.config.js",
+    "test": "cross-env NODE_ENV=test jest --config jest.config.cjs",
     "test:watch": "npm test -- --watch",
     "test:coverage": "npm test -- --coverage",
     "test:verbose": "npm test -- --verbose",
@@ -52,8 +52,13 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "cross-env": "^10.1.0",
+    "jest": "^29.7.0",
     "nodemon": "3.0.2",
     "pm2": "^6.0.13",
+    "ts-jest": "^29.4.5",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
 }

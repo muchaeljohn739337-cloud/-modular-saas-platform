@@ -5,6 +5,11 @@ import { PrismaClient } from "@prisma/client";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import path from "path";
+import { fileURLToPath } from "url";
+
+// ESM-safe __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load .env.test file BEFORE importing prismaClient
 dotenv.config({ path: path.join(__dirname, "../.env.test") });

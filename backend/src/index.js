@@ -2,8 +2,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import swaggerUi from "swagger-ui-express";
-import { runMigrations } from "./db.js";
 import { swaggerSpec } from "./config/swagger.js";
+import { runMigrations } from "./db.js";
 import {
   errorHandler,
   initMonitoring,
@@ -45,11 +45,15 @@ app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 // Swagger API Documentation
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  explorer: true,
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: "Advancia Pay API Docs",
-}));
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    explorer: true,
+    customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "Advancia Pay API Docs",
+  })
+);
 
 // Swagger JSON endpoint
 app.get("/api-docs.json", (req, res) => {
@@ -59,6 +63,12 @@ app.get("/api-docs.json", (req, res) => {
 
 app.use("/api", healthRoutes);
 app.use("/api/auth", authRoutes);
+// Test-only endpoints
+import testRoutes from "./routes/test.js";
+app.use("/api/test", testRoutes);
+// Weather SaaS API
+import weatherSaasRoutes from "./routes/weatherSaas.js";
+app.use("/api/weather", weatherSaasRoutes);
 
 app.get("/api/me", (req, res) =>
   res.json({ service: "advvancia-backend", version: "1.0.0" })
@@ -71,14 +81,46 @@ app.use(sentryErrorHandler());
 app.use(errorHandler);
 
 // Run migrations at startup
+console.log("🚀 Starting backend initialization...");
+
 runMigrations()
-  .then(() => seedAdmin())
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Backend listening on port ${PORT}`);
+    console.log("✅ Database migrations completed");
+    return seedAdmin();
+  })
+  .then(() => {
+    console.log("✅ Admin user seeded/verified");
+    return import("./seed.js").then((m) => m.seedTestUser && m.seedTestUser());
+  })
+  .then(() => {
+    console.log("✅ Test user seeded/verified");
+    console.log("🌐 Starting HTTP server...");
+
+    const server = app.listen(PORT, () => {
+      console.log(`✅ Backend listening on port ${PORT}`);
+      console.log(`📍 Health: http://localhost:${PORT}/api/health`);
+      console.log(`📍 API Docs: http://localhost:${PORT}/api-docs`);
+      console.log(`🌦️  Weather API: http://localhost:${PORT}/api/weather/test`);
+      console.log("🎉 Server is ready to accept connections!");
+    });
+
+    // Keep the process alive
+    server.on("error", (error) => {
+      console.error("❌ Server error:", error);
+      process.exit(1);
+    });
+
+    // Handle graceful shutdown
+    process.on("SIGINT", () => {
+      console.log("\n⏳ Gracefully shutting down...");
+      server.close(() => {
+        console.log("✅ Server closed");
+        process.exit(0);
+      });
     });
   })
   .catch((err) => {
-    console.error("Startup error:", err);
+    console.error("❌ Startup error:", err);
+    console.error("Stack trace:", err.stack);
     process.exit(1);
   });

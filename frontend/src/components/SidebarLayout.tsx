@@ -1,29 +1,30 @@
 "use client";
-import Link from "next/link";
-import Image from "next/image";
-import { useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Activity,
-  Home,
+  Banknote,
   BarChart3,
-  Wallet,
-  Grid3x3,
-  Settings,
-  User,
-  Shield,
-  Menu,
-  X,
+  Book,
   ChevronRight,
+  Cloud,
+  DollarSign,
+  Grid3x3,
+  Home,
+  Info,
   LogOut,
   LucideIcon,
-  Banknote,
-  Info,
-  DollarSign,
-  Book,
+  Menu,
+  Settings,
+  Shield,
+  User,
+  Wallet,
+  X,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useMemo, useState } from "react";
 
 type SessionUser = {
   id?: string;
@@ -40,16 +41,21 @@ interface NavLinkProps {
   onClick?: () => void;
 }
 
-export default function SidebarLayout({ children }: { children: React.ReactNode }) {
+export default function SidebarLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { data: session } = useSession();
   const sessionUser = session?.user as SessionUser | undefined;
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   const userRole = sessionUser?.role || sessionUser?.email;
-  const isAdmin = userRole === "admin" || 
-                  sessionUser?.email === "admin@advancia.com" ||
-                  sessionUser?.email?.includes("admin");
+  const isAdmin =
+    userRole === "admin" ||
+    sessionUser?.email === "admin@advancia.com" ||
+    sessionUser?.email?.includes("admin");
 
   const displayName = useMemo(() => {
     if (sessionUser?.name && sessionUser.name.trim().length > 0) {
@@ -65,7 +71,8 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
     const parts = displayName.split(/\s+/).filter(Boolean);
     if (!parts.length) return "";
     const primary = parts[0]?.[0] ?? "";
-    const secondary = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? "" : "";
+    const secondary =
+      parts.length > 1 ? parts[parts.length - 1]?.[0] ?? "" : "";
     return `${primary}${secondary}`.toUpperCase();
   }, [displayName]);
 
@@ -76,6 +83,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
     { href: "/eth/transactions", label: "ETH Activity", icon: Activity },
     { href: "/loans", label: "Loans", icon: Banknote },
     { href: "/features", label: "Features", icon: Grid3x3 },
+    { href: "/weather", label: "Weather API", icon: Cloud },
     { href: "/about", label: "About", icon: Info },
     { href: "/pricing", label: "Pricing", icon: DollarSign },
     { href: "/docs", label: "Docs", icon: Book },
@@ -92,14 +100,19 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
         className={`
           group relative flex items-center gap-3 px-4 py-3.5 rounded-xl
           transition-all duration-300 ease-out
-          ${isActive 
-            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/30' 
-            : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-700'
+          ${
+            isActive
+              ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/30"
+              : "text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-700"
           }
           active:scale-95 touch-manipulation
         `}
       >
-        <Icon className={`h-5 w-5 shrink-0 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : ''}`} />
+        <Icon
+          className={`h-5 w-5 shrink-0 transition-transform group-hover:scale-110 ${
+            isActive ? "text-white" : ""
+          }`}
+        />
         <span className="font-medium truncate">{label}</span>
         {!isActive && (
           <ChevronRight className="ml-auto h-4 w-4 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -124,7 +137,11 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
             className="p-2.5 rounded-xl hover:bg-gray-100 active:scale-95 transition-all touch-manipulation"
             aria-label="Toggle menu"
           >
-            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </button>
         </div>
       </div>
@@ -155,7 +172,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                   <span className="text-purple-400">Pay</span> Ledger
                 </h1>
               </div>
-              
+
               <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
                 {navItems.map((item) => (
                   <NavLink
@@ -164,7 +181,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                     onClick={() => setIsMobileMenuOpen(false)}
                   />
                 ))}
-                
+
                 {isAdmin && (
                   <Link
                     href="/admin"
@@ -172,9 +189,10 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                     className={`
                       group flex items-center gap-3 px-4 py-3.5 rounded-xl
                       border-2 border-red-200 mt-4
-                      ${pathname === '/admin'
-                        ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg'
-                        : 'text-red-600 hover:bg-red-50'
+                      ${
+                        pathname === "/admin"
+                          ? "bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg"
+                          : "text-red-600 hover:bg-red-50"
                       }
                       transition-all active:scale-95 touch-manipulation
                     `}
@@ -201,9 +219,13 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
+                    <p className="text-sm font-semibold text-gray-900 truncate">
+                      {displayName}
+                    </p>
                     {sessionUser?.email && (
-                      <p className="text-xs text-gray-500 truncate">{sessionUser.email}</p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {sessionUser.email}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -230,21 +252,22 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
             <span className="text-purple-400">Pay</span> Ledger
           </h1>
         </div>
-        
+
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink key={item.href} {...item} />
           ))}
-          
+
           {isAdmin && (
             <Link
               href="/admin"
               className={`
                 group flex items-center gap-3 px-4 py-3.5 rounded-xl
                 border-2 border-red-200 mt-4
-                ${pathname === '/admin'
-                  ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg'
-                  : 'text-red-600 hover:bg-red-50'
+                ${
+                  pathname === "/admin"
+                    ? "bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg"
+                    : "text-red-600 hover:bg-red-50"
                 }
                 transition-all active:scale-95
               `}
@@ -271,9 +294,13 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
+              <p className="text-sm font-semibold text-gray-900 truncate">
+                {displayName}
+              </p>
               {sessionUser?.email && (
-                <p className="text-xs text-gray-500 truncate">{sessionUser.email}</p>
+                <p className="text-xs text-gray-500 truncate">
+                  {sessionUser.email}
+                </p>
               )}
             </div>
           </div>
@@ -288,11 +315,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 bg-gray-50 pt-16 lg:pt-0">
-        {children}
-      </div>
+      <div className="flex-1 bg-gray-50 pt-16 lg:pt-0">{children}</div>
     </div>
   );
 }
-
-
