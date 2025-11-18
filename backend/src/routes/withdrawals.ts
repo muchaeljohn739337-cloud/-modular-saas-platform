@@ -93,10 +93,13 @@ router.post(
       const withdrawal = await prisma.cryptoWithdrawal.create({
         data: {
           userId,
-          cryptoType: balanceType.toUpperCase(),
+          currency: balanceType.toUpperCase(),
+          amount: amountNum,
+          destinationAddress: withdrawalAddress || "",
+          cryptoType: balanceType.toUpperCase(), // Legacy field for backward compatibility
           cryptoAmount: amountNum,
           usdEquivalent: balanceType.toUpperCase() === "USD" ? amountNum : 0, // Can be calculated if needed
-          withdrawalAddress: withdrawalAddress || "",
+          withdrawalAddress: withdrawalAddress || "", // Legacy field
           status: "pending",
         },
       });

@@ -150,6 +150,7 @@ model AuditLog {
   previousValues Json?
   newValues      Json?
   metadata       Json?
+  details        Json? // Additional details for complex operations
   ipAddress      String?
   userAgent      String?
   timestamp      DateTime @default(now())
@@ -316,14 +317,17 @@ model CryptoOrder {
 }
 
 model CryptoWallet {
-  id        String   @id @default(uuid())
-  userId    String
-  currency  String   // BTC, ETH, USDT
-  balance   Decimal  @default(0)
-  address   String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String   @id @default(uuid())
+  userId        String
+  currency      String   // BTC, ETH, USDT
+  balance       Decimal  @default(0)
+  lockedBalance Decimal  @default(0) // Balance locked in pending withdrawals
+  totalIn       Decimal  @default(0) // Total deposits
+  totalOut      Decimal  @default(0) // Total withdrawals
+  address       String   @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, currency])
   @@index([userId])
@@ -332,29 +336,36 @@ model CryptoWallet {
 }
 
 model CryptoWithdrawal {
-  id                String    @id @default(uuid())
-  userId            String
-  cryptoType        String
-  cryptoAmount      Decimal
-  usdEquivalent     Decimal
-  withdrawalAddress String
-  status            String    @default("pending")
-  adminApprovedBy   String?
-  adminNotes        String?
-  txHash            String?
-  networkFee        Decimal?
-  approvedAt        DateTime?
-  rejectedAt        DateTime?
-  completedAt       DateTime?
-  cancelledAt       DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  user_notes        String?
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String    @id @default(uuid())
+  userId               String
+  cryptoType           String // Legacy field (kept for backward compatibility)
+  currency             String // BTC, ETH, USDT
+  amount               Decimal // Withdrawal amount
+  cryptoAmount         Decimal
+  usdEquivalent        Decimal
+  withdrawalAddress    String // Legacy field
+  destinationAddress   String // Destination address
+  status               String    @default("pending")
+  adminApprovedBy      String?
+  approvedBy           String? // Admin who approved
+  adminNotes           String?
+  txHash               String?
+  networkFee           Decimal?
+  requestedAt          DateTime  @default(now())
+  approvedAt           DateTime?
+  rejectedAt           DateTime?
+  completedAt          DateTime?
+  cancelledAt          DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  user_notes           String?
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
   @@index([cryptoType])
+  @@index([currency])
+  @@index([requestedAt])
   @@index([createdAt])
   @@map("crypto_withdrawals")
 }
