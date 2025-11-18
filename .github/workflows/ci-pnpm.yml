@@ -27,7 +27,7 @@ jobs:
       - name: Frontend typecheck
         run: |
           cd frontend
-          pnpm dlx typescript tsc --noEmit
+          pnpm --package=typescript dlx tsc --noEmit
 
       - name: Frontend lint
         run: |
