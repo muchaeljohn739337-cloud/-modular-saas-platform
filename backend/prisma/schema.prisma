@@ -1347,3 +1347,23 @@ model WithdrawalQueue {
   @@index([estimatedTime])
   @@map("withdrawal_queue")
 }
+
+model TrustpilotReview {
+  id            String    @id @default(uuid())
+  trustpilotId  String    @unique // Trustpilot review ID
+  stars         Int       // 1-5 rating
+  title         String?
+  text          String    @db.Text
+  reviewerName  String
+  isVerified    Boolean   @default(false) // Trustpilot verified purchase
+  isPublished   Boolean   @default(false) // Show on website
+  reviewDate    DateTime  // When review was created on Trustpilot
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([trustpilotId])
+  @@index([stars])
+  @@index([isPublished])
+  @@index([reviewDate])
+  @@map("trustpilot_reviews")
+}

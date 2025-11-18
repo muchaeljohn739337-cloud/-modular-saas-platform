@@ -17,7 +17,7 @@ router.post("/subscribe", async (req, res, next) => {
     // validate with zod here since validateInput middleware is a generic sanitizer
     const parsed = subscribeSchema.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({ ok: false, error: parsed.error.errors });
+      return res.status(400).json({ ok: false, error: parsed.error.issues });
     }
     const { email } = parsed.data;
 

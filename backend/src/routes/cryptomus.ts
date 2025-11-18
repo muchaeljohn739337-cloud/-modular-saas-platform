@@ -11,17 +11,29 @@ import {
 
 const router = Router();
 
-// Cryptomus configuration
+// Cryptomus configuration (Official API Documentation)
 const CRYPTOMUS_API_KEY = process.env.CRYPTOMUS_API_KEY || "";
-const CRYPTOMUS_MERCHANT_ID = process.env.CRYPTOMUS_MERCHANT_ID || "";
-const CRYPTOMUS_PAYMENT_URL = "https://api.cryptomus.com/v1/payment";
+const CRYPTOMUS_USER_ID = process.env.CRYPTOMUS_MERCHANT_ID || ""; // This is actually userId in their API
+const CRYPTOMUS_BASE_URL = "https://api.cryptomus.com/v1";
 
 /**
  * Generate signature for Cryptomus API
+ * Official docs: sign = MD5(base64(body) + API_KEY)
  */
 function generateSignature(data: any): string {
   const jsonString = JSON.stringify(data);
   const base64 = Buffer.from(jsonString).toString("base64");
+  return crypto
+    .createHash("md5")
+    .update(base64 + CRYPTOMUS_API_KEY)
+    .digest("hex");
+}
+
+/**
+ * Generate signature for empty body (for GET requests)
+ */
+function generateEmptySignature(): string {
+  const base64 = Buffer.from("").toString("base64");
   return crypto
     .createHash("md5")
     .update(base64 + CRYPTOMUS_API_KEY)
@@ -46,11 +58,11 @@ router.post(
           .json({ error: "Amount and currency are required" });
       }
 
-      if (!CRYPTOMUS_API_KEY || !CRYPTOMUS_MERCHANT_ID) {
+      if (!CRYPTOMUS_API_KEY || !CRYPTOMUS_USER_ID) {
         return res.status(503).json({ error: "Cryptomus is not configured" });
       }
 
-      // Create payment data
+      // Create payment data (following official docs structure)
       const paymentData = {
         amount: amount.toString(),
         currency: currency.toUpperCase(), // BTC, ETH, USDT, etc.
@@ -66,13 +78,13 @@ router.post(
 
       const signature = generateSignature(paymentData);
 
-      // Make request to Cryptomus API
-      const response = await fetch(CRYPTOMUS_PAYMENT_URL, {
+      // Make request to Cryptomus API (following official authentication)
+      const response = await fetch(`${CRYPTOMUS_BASE_URL}/payment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          merchant: CRYPTOMUS_MERCHANT_ID,
-          sign: signature,
+          userId: CRYPTOMUS_USER_ID, // Official header name
+          sign: signature, // Official header name
         },
         body: JSON.stringify(paymentData),
       });
@@ -304,6 +316,51 @@ router.post("/webhook", async (req, res) => {
   } catch (error: any) {
     console.error("Cryptomus webhook error:", error);
     return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * Test Cryptomus configuration
+ * GET /api/cryptomus/test-config
+ */
+router.get("/test-config", async (req, res) => {
+  try {
+    // Check environment variables
+    const config = {
+      hasApiKey: !!CRYPTOMUS_API_KEY,
+      hasUserId: !!CRYPTOMUS_USER_ID,
+      hasBaseUrl: !!CRYPTOMUS_BASE_URL,
+      userId: CRYPTOMUS_USER_ID
+        ? `${CRYPTOMUS_USER_ID.substring(0, 8)}...`
+        : "missing",
+      baseUrl: CRYPTOMUS_BASE_URL || "missing",
+    };
+
+    // Test signature generation
+    const testBody = { test: "data" };
+    const testSignature = generateSignature(testBody);
+
+    // Test empty signature
+    const emptySignature = generateEmptySignature();
+
+    return res.json({
+      success: true,
+      message: "Cryptomus configuration test",
+      config,
+      signatureTest: {
+        algorithm: "MD5",
+        withBody: testSignature ? "✓ Generated" : "✗ Failed",
+        emptyBody: emptySignature ? "✓ Generated" : "✗ Failed",
+      },
+      ready: !!(CRYPTOMUS_API_KEY && CRYPTOMUS_USER_ID && CRYPTOMUS_BASE_URL),
+    });
+  } catch (error: any) {
+    console.error("Config test error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+      ready: false,
+    });
   }
 });
 

@@ -1,14 +1,15 @@
-import type { Metadata, Viewport } from "next";
-import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import ScrollToTop from "@/components/ScrollToTop";
-import LiveSupportScript from "@/components/LiveSupportScript";
-import SystemFeedbackBanner from "@/components/SystemFeedbackBanner";
-import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import ChatbotWidget from "@/components/ChatbotWidget";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import LiveSupportScript from "@/components/LiveSupportScript";
+import OrganizationJsonLd from "@/components/OrganizationJsonLd";
+import ScrollToTop from "@/components/ScrollToTop";
+import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import SilentModeProvider from "@/components/SilentModeProvider";
 import SplashScreen from "@/components/SplashScreen";
+import SystemFeedbackBanner from "@/components/SystemFeedbackBanner";
+import type { Metadata, Viewport } from "next";
+import "./globals.css";
 // import dynamic from "next/dynamic";
 
 // Dynamically import AdvanciaAIWidget to avoid SSR issues
@@ -18,7 +19,7 @@ import SplashScreen from "@/components/SplashScreen";
 // });
 
 // Force dynamic rendering to avoid SSR issues
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const viewport: Viewport = {
   themeColor: "#2563eb",
@@ -36,9 +37,7 @@ export const metadata: Metadata = {
       { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/favicon.ico", sizes: "any" },
     ],
-    apple: [
-      { url: "/apple-touch-icon.svg", type: "image/svg+xml" },
-    ],
+    apple: [{ url: "/apple-touch-icon.svg", type: "image/svg+xml" }],
   },
   manifest: "/site.webmanifest",
 };
@@ -51,6 +50,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans">
+        <OrganizationJsonLd />
         <SplashScreen />
         <ErrorBoundary>
           <ScrollToTop />

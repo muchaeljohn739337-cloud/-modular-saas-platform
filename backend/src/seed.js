@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import qrcode from "qrcode";
 import speakeasy from "speakeasy";
@@ -8,7 +8,7 @@ async function seedAdmin() {
   try {
     // Check if admin exists
     const existing = await query("SELECT id FROM users WHERE email = $1", [
-      "admin@advvancia.com",
+      "admin@advancia.com",
     ]);
     if (existing.rowCount > 0) {
       console.log("Admin user already exists.");
@@ -20,7 +20,7 @@ async function seedAdmin() {
 
     // Generate TOTP secret
     const secret = speakeasy.generateSecret({
-      name: "Advvancia (admin@advvancia.com)",
+      name: "advancia (admin@advancia.com)",
       length: 20,
     });
 
@@ -43,14 +43,15 @@ async function seedAdmin() {
 
     console.log("Backup codes (save securely):", backupCodes);
 
-    // Insert admin user with 2FA
+    // Insert admin user with 2FA (use Prisma camelCase column names with explicit ID and username)
     await query(
-      `INSERT INTO users (email, password_hash, role, totp_secret, totp_enabled, totp_verified, backup_codes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      `INSERT INTO users (id, email, username, "passwordHash", role, "totpSecret", "totpEnabled", "totpVerified", "backupCodes", "createdAt", "updatedAt")
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
       [
-        "admin@advvancia.com",
-        hashedPassword,
+        "admin@advancia.com",
         "admin",
+        hashedPassword,
+        "ADMIN",
         secret.base32,
         true,
         true,
@@ -59,7 +60,7 @@ async function seedAdmin() {
     );
 
     console.log(
-      "Admin user seeded with 2FA: admin@advvancia.com / admin123 + TOTP"
+      "Admin user seeded with 2FA: admin@advancia.com / admin123 + TOTP"
     );
   } catch (error) {
     console.error("Error seeding admin:", error);

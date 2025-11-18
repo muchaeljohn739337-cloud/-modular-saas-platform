@@ -47,9 +47,6 @@ export const rpaConfig = {
     sms: {
       enabled: process.env.RPA_SMS_ENABLED === "true",
       provider: "twilio",
-      twilioAccountSid: process.env.TWILIO_ACCOUNT_SID,
-      twilioAuthToken: process.env.TWILIO_AUTH_TOKEN,
-      twilioPhoneNumber: process.env.TWILIO_PHONE_NUMBER,
     },
     throttle: {
       maxPerMinute: 60,

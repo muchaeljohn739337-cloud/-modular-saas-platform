@@ -448,8 +448,6 @@ router.post(
   }
 );
 
-export default router;
-
 /**
  * POST /api/admin/bulk/enable-gpt5
  * Bulk enable GPT-5 access for users

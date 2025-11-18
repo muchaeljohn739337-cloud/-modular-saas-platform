@@ -45,11 +45,15 @@ app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 // Swagger API Documentation
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  explorer: true,
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: "Advancia Pay API Docs",
-}));
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    explorer: true,
+    customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "Advancia Pay API Docs",
+  })
+);
 
 // Swagger JSON endpoint
 app.get("/api-docs.json", (req, res) => {
@@ -73,12 +77,10 @@ app.use(errorHandler);
 // Run migrations at startup
 runMigrations()
   .then(() => seedAdmin())
-  .then(() => {
+  .catch((err) => console.error("Error seeding admin:", err))
+  .finally(() => {
+    // Start server even if seeding fails (useful for local dev without DB)
     app.listen(PORT, () => {
       console.log(`Backend listening on port ${PORT}`);
     });
-  })
-  .catch((err) => {
-    console.error("Startup error:", err);
-    process.exit(1);
   });

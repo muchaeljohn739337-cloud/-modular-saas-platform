@@ -1,0 +1,51 @@
+name: Backup Restore Verify
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1" # Mondays 03:00 UTC
+
+jobs:
+  verify-restore:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: advancia_pay
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Apply Prisma migrations (create schema)
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/advancia_pay?schema=public
+        run: |
+          pushd backend
+          npx prisma migrate deploy
+          popd
+
+      - name: Run backup restore test (non-docker mode)
+        shell: pwsh
+        env:
+          PGPASSWORD: postgres
+        run: |
+          ./scripts/test-backup-restore.ps1 -DatabaseName advancia_pay -UseDocker:$false -PgHost localhost -PgPort 5432 -PgUser postgres -PgPassword postgres
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-restore-results
+          path: backup-restore-results/*

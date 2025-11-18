@@ -34,6 +34,7 @@ cd frontend && pnpm run dev
 ## 🔑 Critical Secrets to Configure
 
 ### Backend Priority 1 (Required to Start)
+
 ```bash
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/advancia_db
 JWT_SECRET=<paste-from-generated-secrets>
@@ -41,6 +42,7 @@ JWT_REFRESH_SECRET=<paste-from-generated-secrets>
 ```
 
 ### Backend Priority 2 (Required for Features)
+
 ```bash
 # Email (Gmail SMTP for OTP)
 EMAIL_USER=your-gmail@gmail.com
@@ -61,6 +63,7 @@ ADMIN_USDT_WALLET_ADDRESS=<your-coinbase-usdt-address>
 ```
 
 ### Frontend Priority 1
+
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:4000/api
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
@@ -142,6 +145,7 @@ pnpm test
 ## 🚨 Common Issues
 
 ### "Cannot connect to database"
+
 ```powershell
 # Check Docker is running
 docker ps
@@ -154,11 +158,13 @@ docker-compose up -d postgres
 ```
 
 ### "Email not sending"
+
 - Use Gmail **App Password**, not your regular password
 - Enable 2FA on Google account first
 - Check `SMTP_HOST=smtp.gmail.com` and `SMTP_PORT=587`
 
 ### "Wallet generation failed"
+
 ```powershell
 # Verify master seed is 24 words
 node -e "const bip39 = require('bip39'); console.log(bip39.validateMnemonic('your seed here'))"
@@ -169,6 +175,7 @@ node -e "console.log(Buffer.from('your-key-here', 'base64').length)"
 ```
 
 ### "JWT malformed"
+
 - Ensure `JWT_SECRET` has no spaces or newlines
 - Should be 64+ characters hex string
 - Re-generate: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`
@@ -176,18 +183,21 @@ node -e "console.log(Buffer.from('your-key-here', 'base64').length)"
 ## 🎯 Next Steps After Setup
 
 1. **Create Admin User**
+
    ```bash
    cd backend
    node scripts/create-admin.js
    ```
 
 2. **Run Tests**
+
    ```bash
    cd backend
    pnpm test
    ```
 
 3. **Test Wallet Generation**
+
    ```bash
    node test-wallet.js
    ```

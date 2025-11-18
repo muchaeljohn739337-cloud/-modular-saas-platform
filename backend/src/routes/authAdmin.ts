@@ -2,7 +2,6 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import { sendAlert } from "../utils/mailer";
 import { logAdminLogin } from "../utils/logger";
-import twilio from "twilio";
 import prisma from "../prismaClient";
 
 const router = express.Router();
@@ -11,15 +10,6 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@advancia.com";
 const ADMIN_PASS = process.env.ADMIN_PASS || "Admin@123";
 const JWT_SECRET = process.env.JWT_SECRET!;
 const REFRESH_SECRET = process.env.REFRESH_SECRET || "refresh_secret_key";
-
-// Twilio client for SMS OTP
-function getTwilioClient() {
-  const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN } = process.env;
-  if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN) {
-    return twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-  }
-  return null;
-}
 
 // Temporary OTP store (in production, use Redis)
 const otpStore: Record<string, { code: string; expires: number }> = {};
@@ -78,54 +68,22 @@ router.post("/login", async (req, res) => {
     return res.status(401).json({ error: "Invalid credentials" });
   }
 
-  // Generate and send OTP
+  // Generate and send OTP (console-based, no SMS)
   const code = generateOTP();
   const expires = Date.now() + 5 * 60 * 1000; // 5 minutes
   otpStore[email] = { code, expires };
 
-  // Send SMS OTP
-  const client = getTwilioClient();
-  const from = process.env.TWILIO_PHONE_NUMBER;
+  // Log OTP to console (no Twilio SMS)
+  console.log(
+    `🔐 [ADMIN OTP] Email: ${email} | Code: ${code} | Expires in 5 minutes`
+  );
+  await logAdminLogin(req, email, "OTP_SENT", phone || "console");
 
-  if (client && from && phone) {
-    try {
-      await client.messages.create({
-        body: `Your Advancia admin login code is ${code}. Valid for 5 minutes.`,
-        from,
-        to: phone,
-      });
-
-      await logAdminLogin(req, email, "OTP_SENT", phone);
-      console.log(`📱 Admin OTP sent to ${phone}: ${code}`);
-
-      res.json({
-        step: "verify_otp",
-        message: "OTP sent to your phone",
-      });
-    } catch (smsError) {
-      console.error("❌ Failed to send SMS:", smsError);
-
-      // Fallback: log code to console for development
-      console.log(`[DEV] Admin OTP for ${email}: ${code}`);
-      await logAdminLogin(req, email, "OTP_SENT", phone);
-
-      res.json({
-        step: "verify_otp",
-        message: "OTP generated (check server logs in dev mode)",
-        ...(process.env.NODE_ENV === "development" && { code }),
-      });
-    }
-  } else {
-    // Development mode or missing Twilio config
-    console.log(`[DEV] Admin OTP for ${email}: ${code}`);
-    await logAdminLogin(req, email, "OTP_SENT", phone);
-
-    res.json({
-      step: "verify_otp",
-      message: "OTP generated (check server logs)",
-      ...(process.env.NODE_ENV === "development" && { code }),
-    });
-  }
+  res.json({
+    step: "verify_otp",
+    message: "OTP generated (check server console)",
+    ...(process.env.NODE_ENV === "development" && { code }),
+  });
 });
 
 // POST /api/auth/admin/verify-otp - Step 2: Verify OTP and issue JWT

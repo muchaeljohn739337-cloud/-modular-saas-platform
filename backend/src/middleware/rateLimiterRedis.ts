@@ -12,7 +12,7 @@
 import { NextFunction, Request, Response } from "express";
 import { Redis } from "ioredis";
 import { shouldAlert } from "../config/alertPolicy.js";
-import { sendAlert } from "../services/alertService.js";
+import { sendAlert } from "../services/alertServiceMinimal.js";
 import { captureError } from "../utils/sentry.js";
 
 // Initialize Redis client

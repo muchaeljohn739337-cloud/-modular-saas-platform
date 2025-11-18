@@ -23,7 +23,6 @@ interface NotificationResult {
 
 export class NotificationAutomation {
   private emailTransporter: nodemailer.Transporter | null = null;
-  private twilioClient: any = null; // SMS removed
   private notificationQueue: NotificationPayload[] = [];
   private rateLimitCounter = {
     perMinute: 0,
@@ -187,7 +186,6 @@ export class NotificationAutomation {
    * Send SMS notification
    */
   private async sendSMS(userPhone: string, template: string, data: Record<string, any>): Promise<boolean> {
-    if (!this.twilioClient) {
       console.error("❌ Twilio client not initialized");
       return false;
     }
@@ -195,9 +193,7 @@ export class NotificationAutomation {
     try {
       const message = this.getSMSTemplate(template, data);
 
-      await this.twilioClient.messages.create({
         body: message,
-        from: rpaConfig.notifications.sms.twilioPhoneNumber,
         to: userPhone,
       });
 

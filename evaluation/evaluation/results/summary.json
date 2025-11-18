@@ -1,0 +1,20 @@
+{
+  "timestamp": "2025-11-18T15:53:33.267817",
+  "evaluations": {
+    "trust_score": {
+      "accuracy": 0.7,
+      "status": "FAIL"
+    },
+    "invitation": {
+      "accuracy": 1.0,
+      "status": "PASS"
+    },
+    "api": {
+      "completeness": 0.9666666666666668,
+      "type_accuracy": 0.8,
+      "response_time": 1.0,
+      "status": "FAIL"
+    }
+  },
+  "overall_status": "FAIL"
+}

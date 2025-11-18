@@ -330,3 +330,5 @@ github-config.json
 
 # npm lockfiles (using pnpm)
 package-lock.json
+
+.vercel

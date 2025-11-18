@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 import speakeasy from "speakeasy";
@@ -22,14 +22,14 @@ router.post("/signup", async (req, res) => {
   const hash = await bcrypt.hash(password, 12);
   const result = await query(
     "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, role",
-    [email, hash],
+    [email, hash]
   );
 
   const user = result.rows[0];
   const token = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" },
+    { expiresIn: "7d" }
   );
   res.status(201).json({ token, user: sanitizeUser(user) });
 });
@@ -41,7 +41,7 @@ router.post("/login", loginLimiter, async (req, res) => {
 
   const result = await query(
     "SELECT id, email, role, password_hash, failed_attempts, locked_until, last_login_at FROM users WHERE email=$1",
-    [email],
+    [email]
   );
   if (result.rowCount === 0)
     return res.status(401).json({ error: "Invalid credentials" });
@@ -52,7 +52,7 @@ router.post("/login", loginLimiter, async (req, res) => {
   if (user.locked_until && new Date() < new Date(user.locked_until)) {
     return res.status(423).json({
       error: "Account locked due to too many failed attempts",
-      locked_until: user.locked_until
+      locked_until: user.locked_until,
     });
   }
 
@@ -74,7 +74,7 @@ router.post("/login", loginLimiter, async (req, res) => {
 
     return res.status(401).json({
       error: "Invalid credentials",
-      remaining_attempts: Math.max(0, 5 - newFailedAttempts)
+      remaining_attempts: Math.max(0, 5 - newFailedAttempts),
     });
   }
 
@@ -87,7 +87,7 @@ router.post("/login", loginLimiter, async (req, res) => {
   const token = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" },
+    { expiresIn: "7d" }
   );
   res.json({
     token,
@@ -102,7 +102,7 @@ router.post("/admin-login", loginLimiter, async (req, res) => {
 
   const result = await query(
     "SELECT id, email, role, password_hash, totp_secret, totp_enabled, backup_codes, failed_attempts, locked_until, last_login_at FROM users WHERE email=$1 AND role=$2",
-    [email, "admin"],
+    [email, "admin"]
   );
   if (result.rowCount === 0)
     return res.status(403).json({ error: "Forbidden" });
@@ -113,7 +113,7 @@ router.post("/admin-login", loginLimiter, async (req, res) => {
   if (user.locked_until && new Date() < new Date(user.locked_until)) {
     return res.status(423).json({
       error: "Account locked due to too many failed attempts",
-      locked_until: user.locked_until
+      locked_until: user.locked_until,
     });
   }
 
@@ -135,7 +135,7 @@ router.post("/admin-login", loginLimiter, async (req, res) => {
 
     return res.status(401).json({
       error: "Invalid credentials",
-      remaining_attempts: Math.max(0, 5 - newFailedAttempts)
+      remaining_attempts: Math.max(0, 5 - newFailedAttempts),
     });
   }
 
@@ -167,7 +167,7 @@ router.post("/admin-login", loginLimiter, async (req, res) => {
 
         return res.status(401).json({
           error: "Invalid 2FA token",
-          remaining_attempts: Math.max(0, 5 - newFailedAttempts)
+          remaining_attempts: Math.max(0, 5 - newFailedAttempts),
         });
       }
     } else if (backupCode) {
@@ -201,11 +201,13 @@ router.post("/admin-login", loginLimiter, async (req, res) => {
 
         return res.status(401).json({
           error: "Invalid backup code",
-          remaining_attempts: Math.max(0, 5 - newFailedAttempts)
+          remaining_attempts: Math.max(0, 5 - newFailedAttempts),
         });
       }
     } else {
-      return res.status(400).json({ error: "2FA token or backup code required" });
+      return res
+        .status(400)
+        .json({ error: "2FA token or backup code required" });
     }
   } else {
     // If 2FA not enabled, just password
@@ -224,7 +226,7 @@ router.post("/admin-login", loginLimiter, async (req, res) => {
   const jwtToken = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" },
+    { expiresIn: "7d" }
   );
   res.json({
     token: jwtToken,
@@ -238,7 +240,7 @@ router.post("/admin-recovery", async (req, res) => {
 
   const userResult = await query(
     "SELECT id FROM users WHERE email=$1 AND role=$2",
-    [email, "admin"],
+    [email, "admin"]
   );
   if (userResult.rowCount === 0)
     return res.status(404).json({ error: "Admin not found" });
@@ -247,7 +249,7 @@ router.post("/admin-recovery", async (req, res) => {
   const token = crypto.randomBytes(32).toString("hex");
   await query(
     "INSERT INTO recovery_tokens (email, token, expires_at) VALUES ($1, $2, NOW() + interval '15 minutes')",
-    [email, token],
+    [email, token]
   );
 
   // Send email (using Gmail SMTP as per instructions)
@@ -259,7 +261,9 @@ router.post("/admin-recovery", async (req, res) => {
     },
   });
 
-  const recoveryUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/admin-recover?token=${token}`;
+  const recoveryUrl = `${
+    process.env.FRONTEND_URL || "http://localhost:3000"
+  }/admin-recover?token=${token}`;
   await transporter.sendMail({
     from: process.env.EMAIL_USER,
     to: email,
@@ -276,7 +280,7 @@ router.post("/admin-recover", async (req, res) => {
 
   const tokenResult = await query(
     "SELECT email FROM recovery_tokens WHERE token=$1 AND expires_at > NOW() AND used=FALSE",
-    [token],
+    [token]
   );
   if (tokenResult.rowCount === 0)
     return res.status(401).json({ error: "Invalid or expired token" });
@@ -289,7 +293,7 @@ router.post("/admin-recover", async (req, res) => {
   // Get user
   const userResult = await query(
     "SELECT id, email, role FROM users WHERE email=$1",
-    [email],
+    [email]
   );
   const user = userResult.rows[0];
 
@@ -297,7 +301,7 @@ router.post("/admin-recover", async (req, res) => {
   const jwtToken = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: "1h" }, // Short expiry for recovery
+    { expiresIn: "1h" } // Short expiry for recovery
   );
   res.json({
     token: jwtToken,
