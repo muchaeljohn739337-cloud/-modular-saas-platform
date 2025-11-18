@@ -70,9 +70,10 @@ import telegramWebhookRouter from "./routes/telegramWebhook";
 import transactionsRouter /* , { setTransactionSocketIO } */ from "./routes/transactions";
 import twoFactorRouter from "./routes/twoFactor";
 import userApprovalRouter from "./routes/userApproval";
+import walletsRouter from "./routes/wallets";
 // import adminUsersRouter, { setAdminUsersSocketIO } from "./routes/users";
 // import webhooksRouter from "./routes/webhooks"; // Resend webhook handlers
-import withdrawalsRouter, { setWithdrawalSocketIO } from "./routes/withdrawals";
+import withdrawalsRouter from "./routes/withdrawals";
 // import { setSocketIO as setNotificationSocket } from "./services/notificationService";
 // import "./tracing";
 // import { enrichRequestSpan } from "./tracing";
@@ -212,6 +213,7 @@ app.use("/api/sessions", sessionsRouter);
 app.use("/api/withdrawals", withdrawalsRouter);
 // app.use("/api/oal", oalRouter);
 app.use("/api/tokens", tokensRouter);
+app.use("/api/wallets", walletsRouter); // Custodial HD wallets (BTC/ETH/USDT)
 app.use("/api/prices", pricesRouter); // Multi-provider price service (CoinGecko + Binance)
 // app.use("/api/tokens", authenticateToken, tokensEnhancedRouter); // Enhanced token features
 // app.use("/api/crypto", authenticateToken, cryptoEnhancedRouter); // Crypto charts & swap (RE-ENABLED)
