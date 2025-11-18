@@ -6,12 +6,15 @@
  * Supports BTC, ETH, USDT with rotation capability.
  */
 
-import * as bip32 from "bip32";
+import { BIP32Factory } from "bip32";
 import * as bip39 from "bip39";
 import * as bitcoin from "bitcoinjs-lib";
 import crypto from "crypto";
 import { ethers } from "ethers";
+import * as ecc from "tiny-secp256k1";
 import prisma from "../prismaClient.js";
+
+const bip32 = BIP32Factory(ecc);
 
 // BIP44 Derivation Paths
 // m / purpose' / coin_type' / account' / change / address_index
@@ -124,7 +127,7 @@ function deriveBitcoinAddress(index: number): {
 
   return {
     address,
-    privateKey: child.privateKey!.toString("hex"),
+    privateKey: Buffer.from(child.privateKey!).toString("hex"),
   };
 }
 
@@ -255,6 +258,8 @@ export async function rotateUserWallet(
       data: {
         userId,
         action: "WALLET_ROTATED",
+        resourceType: "CRYPTO_WALLET",
+        resourceId: oldWallet.id,
         details: JSON.stringify({
           currency,
           oldAddress: oldWallet.address,

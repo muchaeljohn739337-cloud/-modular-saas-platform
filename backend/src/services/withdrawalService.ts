@@ -62,7 +62,10 @@ export async function createWithdrawalRequest(request: WithdrawalRequest) {
       currency,
       amount,
       destinationAddress,
-      network: network || "default",
+      cryptoType: currency, // Legacy field for backward compatibility
+      cryptoAmount: amount,
+      usdEquivalent: 0, // Can be calculated if needed
+      withdrawalAddress: destinationAddress, // Legacy field
       status: "pending", // pending → approved → completed
       requestedAt: new Date(),
     },
@@ -82,6 +85,8 @@ export async function createWithdrawalRequest(request: WithdrawalRequest) {
     data: {
       userId,
       action: "WITHDRAWAL_REQUEST",
+      resourceType: "CRYPTO_WITHDRAWAL",
+      resourceId: withdrawal.id,
       details: JSON.stringify({
         withdrawalId: withdrawal.id,
         currency,
@@ -188,6 +193,8 @@ export async function approveWithdrawal(approval: WithdrawalApproval) {
     data: {
       userId: adminId,
       action: "WITHDRAWAL_APPROVED",
+      resourceType: "CRYPTO_WITHDRAWAL",
+      resourceId: withdrawalId,
       details: JSON.stringify({
         withdrawalId,
         currency: withdrawal.currency,
@@ -257,6 +264,8 @@ export async function rejectWithdrawal(
     data: {
       userId: adminId,
       action: "WITHDRAWAL_REJECTED",
+      resourceType: "CRYPTO_WITHDRAWAL",
+      resourceId: withdrawalId,
       details: JSON.stringify({
         withdrawalId,
         currency: withdrawal.currency,
