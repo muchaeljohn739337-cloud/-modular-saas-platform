@@ -6,10 +6,6 @@ on:
     paths:
       - "frontend/**"
       - ".github/workflows/vercel-deploy-oidc.yml"
-  pull_request:
-    branches: [main]
-    paths:
-      - "frontend/**"
   workflow_dispatch:
 
 permissions:
@@ -21,6 +17,7 @@ jobs:
   deploy:
     name: Deploy Frontend to Vercel
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
     environment:
       name: production
       url: ${{ steps.deploy.outputs.url }}
