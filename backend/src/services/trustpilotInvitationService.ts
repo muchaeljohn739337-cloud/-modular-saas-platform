@@ -1,7 +1,7 @@
 import axios from "axios";
-import config from "../config";
+import { config } from "../jobs/config";
 import logger from "../logger";
-import prisma from "../prismaClient"
+import prisma from "../prismaClient";
 
 interface InvitationSettings {
   autoSendEnabled: boolean;
