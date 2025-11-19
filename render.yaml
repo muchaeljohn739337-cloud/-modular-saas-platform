@@ -1,0 +1,58 @@
+services:
+  - type: web
+    name: advancia-backend
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: backend
+    autoDeploy: true
+    buildCommand: npm ci && npx prisma generate && npx prisma migrate deploy && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "4000"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: advancia-db
+          property: connectionString
+      - key: JWT_SECRET
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        value: "https://advanciapayledger.com"
+      - key: ALLOWED_ORIGINS
+        value: "https://advanciapayledger.com,https://www.advanciapayledger.com"
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: JWT_SECRET_ENCRYPTED
+        sync: false
+      - key: JWT_ENCRYPTION_KEY
+        sync: false
+      - key: JWT_ENCRYPTION_IV
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        value: "mailto:support@advanciapayledger.com"
+      - key: CRYPTOMUS_API_KEY
+        sync: false
+      - key: CRYPTOMUS_MERCHANT_ID
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+    healthCheckPath: /api/health
+
+databases:
+  - name: advancia-db
+    databaseName: db_adnan_postrl
+    user: db_adnan_postrl_user
+    plan: free
+    region: oregon
+    postgresVersion: "15"
