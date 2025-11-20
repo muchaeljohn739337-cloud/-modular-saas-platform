@@ -5,7 +5,7 @@
 ### Step 1: Deploy Frontend to Vercel
 
 ```bash
-# Login to Vercel (use your token: 5Mfvjjg2L4B46AbiypV6fgGH)
+# Login to Vercel
 vercel login
 
 # Deploy to production

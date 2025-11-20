@@ -332,3 +332,7 @@ github-config.json
 package-lock.json
 
 .vercel
+
+*.p12
+
+security-audit-report-*.json
