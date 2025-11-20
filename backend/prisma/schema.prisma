@@ -1336,3 +1336,64 @@ enum AlertSeverity {
   HIGH
   CRITICAL
 }
+
+enum SubscriptionTier {
+  FREE
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+model BreachAlert {
+  id          String    @id @default(uuid())
+  userId      String
+  email       String
+  breachName  String
+  breachDate  DateTime?
+  dataClasses String[]
+  pwnCount    Int       @default(0)
+  notified    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([email])
+  @@map("breach_alerts")
+}
+
+model IPRotationLog {
+  id             String   @id @default(uuid())
+  userId         String
+  originalIP     String
+  maskedIP       String
+  targetCountry  String
+  city           String?
+  vpnActive      Boolean  @default(false)
+  proxyActive    Boolean  @default(true)
+  locationMasked Boolean  @default(false)
+  provider       String?
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("ip_rotation_logs")
+}
+
+model SecuritySettings {
+  id                     String   @id @default(uuid())
+  userId                 String   @unique
+  breachMonitoringActive Boolean  @default(false)
+  ipProtectionActive     Boolean  @default(false)
+  vpnEnabled             Boolean  @default(false)
+  proxyEnabled           Boolean  @default(false)
+  locationMaskingEnabled Boolean  @default(false)
+  preferredCountry       String?
+  autoRotateIP           Boolean  @default(false)
+  rotationIntervalHours  Int      @default(24)
+  emailAlerts            Boolean  @default(true)
+  pushNotifications      Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@map("security_settings")
+}

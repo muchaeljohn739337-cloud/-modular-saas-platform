@@ -90,20 +90,14 @@ export const authenticateToken = async (
       return res.status(403).json({ error: "Account disabled" });
     }
 
-    // Check if user is approved (skip for admin users)
-    if (user.role !== "ADMIN" && user.approved === false) {
-      if (user.rejectedAt) {
-        return res.status(403).json({
-          error: "Account rejected",
-          reason:
-            user.rejectionReason ||
-            "Your account application was not approved. Please contact support.",
-        });
-      }
+    // ✅ Approval check removed - free users get immediate access
+    // Only block if account was explicitly rejected
+    if (user.rejectedAt && user.role !== "ADMIN") {
       return res.status(403).json({
-        error: "Account pending approval",
-        message:
-          "Your account is awaiting admin approval. You will be notified via email once approved.",
+        error: "Account rejected",
+        reason:
+          user.rejectionReason ||
+          "Your account was suspended. Please contact support.",
       });
     }
 

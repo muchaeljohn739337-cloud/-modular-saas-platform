@@ -51,8 +51,8 @@ router.post("/register", requireApiKey, async (req, res) => {
         lastName: lastName || "",
         termsAccepted: true,
         termsAcceptedAt: new Date(),
-        active: true, // Account is active but...
-        approved: false, // ...requires admin approval before access
+        active: true,
+        approved: true, // ✅ Auto-approve free users - no admin approval needed
         emailVerified: false,
       },
     });
