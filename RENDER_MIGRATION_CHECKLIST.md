@@ -19,7 +19,7 @@
 
 ## ✅ **PHASE 2: Local Build Test** (COMPLETED)
 
-### Backend builds successfully:
+### Backend builds successfully
 
 ```powershell
 cd backend
@@ -34,7 +34,7 @@ npm run build
 - Note: ~195 type errors exist but don't block compilation (tsconfig: `noEmitOnError: false`)
 - **Deployment-ready**: Render will compile successfully
 
-### Test backend starts locally:
+### Test backend starts locally
 
 ```powershell
 npm start
@@ -42,14 +42,14 @@ npm start
 
 **Expected Output**:
 
-```
+```text
 🚀 Backend starting...
 ✅ Configuration loaded successfully
 ✅ Database connected
 Server listening on port 4000
 ```
 
-### Test health endpoint:
+### Test health endpoint
 
 ```powershell
 curl http://localhost:4000/api/health
@@ -76,7 +76,8 @@ curl http://localhost:4000/api/health
    - Linked to existing PostgreSQL database
 
 3. **Set Environment Secrets** (sync: false vars):
-   ```
+
+   ```bash
    JWT_SECRET=<from backend/.env>
    SESSION_SECRET=<from backend/.env>
    STRIPE_SECRET_KEY=<from backend/.env>
@@ -101,7 +102,7 @@ curl http://localhost:4000/api/health
 
 2. **Build Settings**:
 
-   - Build Command: `npm ci && npx prisma generate && npx prisma migrate deploy && npm run build`
+   - Build Command: `npm install && npm exec prisma generate && npm exec prisma migrate deploy && npm run build`
    - Start Command: `npm start`
 
 3. **Environment Variables**: (same as Option A)
@@ -110,11 +111,12 @@ curl http://localhost:4000/api/health
 
 ## 📊 **PHASE 4: Verify Deployment**
 
-### Check Render Logs:
+### Check Render Logs
 
 1. Go to **Render Dashboard** → `advancia-backend` → **Logs**
 2. Look for:
-   ```
+
+   ```text
    ==> Building...
    ✔ Generated Prisma Client
    ==> Deploying...
@@ -123,7 +125,7 @@ curl http://localhost:4000/api/health
    Server listening on port 4000
    ```
 
-### Test Backend Endpoints:
+### Test Backend Endpoints
 
 ```powershell
 # Health check
@@ -141,25 +143,25 @@ curl -X POST https://advancia-backend.onrender.com/api/auth/login `
 
 ## 🌐 **PHASE 5: Update Frontend Configuration**
 
-### Update Vercel Environment Variables:
+### Update Vercel Environment Variables
 
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
 2. Select project: `modular-saas-platform-frontend`
 3. **Settings** → **Environment Variables**
 4. Update:
 
-   ```
+   ```bash
    NEXT_PUBLIC_API_URL=https://advancia-backend.onrender.com
    NEXT_PUBLIC_WS_URL=wss://advancia-backend.onrender.com
    ```
 
 5. **Redeploy frontend**: Vercel → Deployments → Redeploy
 
-### Update Backend CORS Origins:
+### Update Backend CORS Origins
 
 Go to **Render** → `advancia-backend` → **Environment**:
 
-```
+```bash
 FRONTEND_URL=https://modular-saas-platform-frontend-6iwhoautb-advanciapayledger.vercel.app
 ALLOWED_ORIGINS=https://modular-saas-platform-frontend-6iwhoautb-advanciapayledger.vercel.app,https://advanciapayledger.com,https://www.advanciapayledger.com
 ```
@@ -170,11 +172,11 @@ Redeploy backend.
 
 ## 🔐 **PHASE 6: DNS Configuration (Custom Domain)**
 
-### For Backend API (api.advanciapayledger.com):
+### For Backend API (api.advanciapayledger.com)
 
 **Cloudflare DNS**:
 
-```
+```text
 Type: CNAME
 Name: api
 Target: advancia-backend.onrender.com
@@ -188,16 +190,16 @@ TTL: Auto
 2. Add: `api.advanciapayledger.com`
 3. Wait for SSL certificate (auto-provisioned)
 
-### Update Backend Environment:
+### Update Backend Environment
 
-```
+```bash
 FRONTEND_URL=https://advanciapayledger.com
 ALLOWED_ORIGINS=https://advanciapayledger.com,https://www.advanciapayledger.com,https://app.advanciapayledger.com
 ```
 
-### Update Frontend Environment:
+### Update Frontend Environment
 
-```
+```bash
 NEXT_PUBLIC_API_URL=https://api.advanciapayledger.com
 NEXT_PUBLIC_WS_URL=wss://api.advanciapayledger.com
 ```
@@ -208,12 +210,15 @@ NEXT_PUBLIC_WS_URL=wss://api.advanciapayledger.com
 
 1. [Stripe Dashboard](https://dashboard.stripe.com) → **Developers** → **Webhooks**
 2. Update endpoint URL:
-   ```
+
+   ```text
    https://api.advanciapayledger.com/api/payments/webhook
    ```
+
 3. Events: `payment_intent.succeeded`, `payment_intent.failed`, `charge.succeeded`
 4. Copy **Signing Secret** → Update in Render:
-   ```
+
+   ```bash
    STRIPE_WEBHOOK_SECRET=whsec_...
    ```
 
@@ -221,18 +226,18 @@ NEXT_PUBLIC_WS_URL=wss://api.advanciapayledger.com
 
 ## 📧 **PHASE 8: Email Configuration**
 
-### Gmail SMTP (for OTP emails):
+### Gmail SMTP (for OTP emails)
 
 Render environment:
 
-```
+```bash
 EMAIL_USER=your-gmail@gmail.com
 EMAIL_PASSWORD=<16-char app password>
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 ```
 
-### Generate Gmail App Password:
+### Generate Gmail App Password
 
 1. Google Account → Security → 2-Step Verification
 2. App passwords → Generate
@@ -242,7 +247,7 @@ SMTP_PORT=587
 
 ## ✅ **PHASE 9: Post-Deployment Testing**
 
-### Backend API Tests:
+### Backend API Tests
 
 ```powershell
 # Health
@@ -259,9 +264,9 @@ curl -X POST https://api.advanciapayledger.com/api/auth/login `
   -d '{"email":"test@example.com","password":"Test1234!"}'
 ```
 
-### Frontend Tests:
+### Frontend Tests
 
-1. Open https://advanciapayledger.com
+1. Open <https://advanciapayledger.com>
 2. Test registration flow
 3. Test login flow
 4. Check browser console for API errors
@@ -271,11 +276,11 @@ curl -X POST https://api.advanciapayledger.com/api/auth/login `
 
 ## 🗑️ **PHASE 10: DigitalOcean Cleanup** (OPTIONAL)
 
-### If you had a DigitalOcean droplet before:
+### If you had a DigitalOcean droplet before
 
 1. **Snapshot droplet** (backup):
 
-   ```
+   ```text
    DigitalOcean → Droplets → [Your Droplet] → Snapshots → Take Snapshot
    ```
 
@@ -289,7 +294,7 @@ curl -X POST https://api.advanciapayledger.com/api/auth/login `
 
 3. **Destroy droplet**:
 
-   ```
+   ```text
    DigitalOcean → Droplets → [Your Droplet] → Destroy
    ```
 
@@ -301,7 +306,7 @@ curl -X POST https://api.advanciapayledger.com/api/auth/login `
 
 ## 📋 **Environment Variables Checklist**
 
-### Backend (Render) - Required:
+### Backend (Render) - Required
 
 - [x] NODE_ENV=production
 - [x] PORT=4000
@@ -324,7 +329,7 @@ curl -X POST https://api.advanciapayledger.com/api/auth/login `
 - [ ] CRYPTOMUS_MERCHANT_ID (if using crypto payments)
 - [ ] SENTRY_DSN (optional, for error tracking)
 
-### Frontend (Vercel) - Required:
+### Frontend (Vercel) - Required
 
 - [ ] NEXT_PUBLIC_API_URL
 - [ ] NEXT_PUBLIC_WS_URL
@@ -365,10 +370,10 @@ curl -X POST https://api.advanciapayledger.com/api/auth/login `
 
 ## 📞 **Support Resources**
 
-- **Render Docs**: https://render.com/docs
-- **Render Status**: https://status.render.com
-- **Prisma Docs**: https://www.prisma.io/docs
-- **Next.js Deployment**: https://nextjs.org/docs/deployment
+- **Render Docs**: <https://render.com/docs>
+- **Render Status**: <https://status.render.com>
+- **Prisma Docs**: <https://www.prisma.io/docs>
+- **Next.js Deployment**: <https://nextjs.org/docs/deployment>
 
 ---
 
