@@ -44,7 +44,7 @@
 
 ### **Step 2: Enable Free Sign-In (5 minutes)**
 
-**Option A: Auto-Approve (Simplest)**
+#### Option A: Auto-Approve (Simplest)
 
 ```typescript
 // File: backend/src/routes/auth.ts
@@ -57,7 +57,7 @@ approved: false,
 approved: true,
 ```
 
-**Option B: Remove Approval Check**
+#### Option B: Remove Approval Check
 
 ```typescript
 // File: backend/src/middleware/auth.ts

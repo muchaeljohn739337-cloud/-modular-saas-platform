@@ -1,7 +1,20 @@
 "use client";
 
 import DashboardRouteGuard from "@/components/DashboardRouteGuard";
-import { HelpCircle, Mail, Send } from "lucide-react";
+import SupportChatWidget from "@/components/SupportChatWidget";
+import {
+  CreditCard,
+  FileText,
+  Github,
+  HelpCircle,
+  Linkedin,
+  Mail,
+  Send,
+  Shield,
+  Twitter,
+  Upload,
+  Zap,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 

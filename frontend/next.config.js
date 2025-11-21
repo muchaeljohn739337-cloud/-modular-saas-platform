@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Use Turbopack (Next.js 16 default) instead of webpack
-  turbopack: {},
+  // Turbopack is automatically used in Next.js 15+ for dev mode
+  // No need to explicitly configure it
 };
 export default nextConfig;

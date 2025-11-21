@@ -1,0 +1,101 @@
+# Auto-labeling configuration for PR file paths
+# Automatically adds labels based on which files are changed
+
+# Backend
+"backend":
+  - backend/**/*
+
+"backend/api":
+  - backend/src/routes/**/*
+
+"backend/database":
+  - backend/prisma/**/*
+
+"backend/middleware":
+  - backend/src/middleware/**/*
+
+"backend/services":
+  - backend/src/services/**/*
+
+"backend/tests":
+  - backend/**/*.test.ts
+  - backend/tests/**/*
+
+# Frontend
+"frontend":
+  - frontend/**/*
+
+"frontend/ui":
+  - frontend/src/components/**/*
+  - frontend/src/app/**/*
+
+"frontend/styles":
+  - frontend/**/*.css
+  - frontend/**/*.scss
+  - frontend/tailwind.config.js
+  - styles/**/*
+
+"frontend/tests":
+  - frontend/**/*.test.tsx
+  - frontend/**/*.test.ts
+
+# Infrastructure
+"infrastructure":
+  - docker-compose*.yml
+  - Dockerfile
+  - .dockerignore
+  - ecosystem.config.js
+  - .github/workflows/**/*
+
+"ci/cd":
+  - .github/workflows/**/*
+  - .github/actions/**/*
+
+# Documentation
+"documentation":
+  - "**/*.md"
+  - docs/**/*
+  - README.md
+
+# Configuration
+"configuration":
+  - "**/*.config.js"
+  - "**/*.config.ts"
+  - "**/tsconfig.json"
+  - .env.example
+  - .env.production
+
+# Security
+"security":
+  - backend/src/middleware/auth.ts
+  - backend/src/utils/encryption.ts
+  - .github/CODEOWNERS
+
+# Database
+"database":
+  - backend/prisma/schema.prisma
+  - backend/prisma/migrations/**/*
+
+# Dependencies
+"dependencies":
+  - "**/package.json"
+  - "**/package-lock.json"
+  - "**/yarn.lock"
+
+# Scripts
+"scripts":
+  - scripts/**/*
+  - "**/*.sh"
+  - "**/*.ps1"
+
+# Sass/Styles
+"styles":
+  - styles/**/*
+  - "**/*.scss"
+  - "**/*.sass"
+
+# Git/GitHub
+"github":
+  - .github/**/*
+  - .gitignore
+  - .gitattributes

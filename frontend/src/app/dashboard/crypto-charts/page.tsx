@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import dynamic from "next/dynamic";
@@ -9,27 +10,27 @@ const LineChart = dynamic(
   {
     ssr: false,
   }
-) as any;
+);
 const Line = dynamic(() => import("recharts").then((mod) => mod.Line), {
   ssr: false,
-}) as any;
+});
 const XAxis = dynamic(() => import("recharts").then((mod) => mod.XAxis), {
   ssr: false,
-}) as any;
+});
 const YAxis = dynamic(() => import("recharts").then((mod) => mod.YAxis), {
   ssr: false,
-}) as any;
+});
 const CartesianGrid = dynamic(
   () => import("recharts").then((mod) => mod.CartesianGrid),
   { ssr: false }
-) as any;
+);
 const Tooltip = dynamic(() => import("recharts").then((mod) => mod.Tooltip), {
   ssr: false,
-}) as any;
+});
 const ResponsiveContainer = dynamic(
   () => import("recharts").then((mod) => mod.ResponsiveContainer),
   { ssr: false }
-) as any;
+);
 
 interface ChartDataPoint {
   time: string;

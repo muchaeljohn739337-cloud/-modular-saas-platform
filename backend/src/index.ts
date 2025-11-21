@@ -2,6 +2,32 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+// Sentry setup
+const Sentry = require("@sentry/node");
+Sentry.init({
+  dsn: "https://41dbdb2c446534ac933de22ca5c2778c@o4510400768573440.ingest.us.sentry.io/4510400800096256",
+  tracesSampleRate: 1.0,
+  sendDefaultPii: true,
+});
+
+// Example AI SDK usage (must be inside an async function)
+const { generateText } = require("ai");
+const { openai } = require("@ai-sdk/openai");
+
+async function getJoke() {
+  const result = await generateText({
+    model: openai("gpt-4o"),
+    prompt: "Tell me a joke",
+    experimental_telemetry: {
+      isEnabled: true,
+      recordInputs: true,
+      recordOutputs: true,
+    },
+  });
+  console.log(result.text);
+}
+// You can call getJoke() somewhere in your app logic if needed
+
 // ---------------------------------------------------------------------------
 // Firm safe defaults for local/dev runs to prevent import-time exits
 // These can be overridden explicitly via the environment.
@@ -124,11 +150,14 @@ import healthRouter from "./routes/health";
 // import medbedsRouter, { setMedbedsSocketIO } from "./routes/medbeds";
 // import oalRouter, { setOALSocketIO } from "./routes/oal";
 import passwordRecoveryRouter from "./routes/passwordRecovery"; // Password recovery & user details
+import handleStripeWebhook, {
+  setPaymentsSocketIO,
+} from "./routes/paymentsWebhook";
 // import paymentsRouter, {
 //   handleStripeWebhook,
 //   setPaymentsSocketIO,
 // } from "./routes/payments";
-// import paymentsEnhancedRouter from "./routes/paymentsEnhanced";
+import paymentsEnhancedRouter from "./routes/paymentsEnhanced";
 // import rewardsRouter from "./routes/rewards";
 // import securityLevelRouter from "./routes/securityLevel"; // Disabled to isolate middleware crash
 // import sendEmailRouter from "./routes/send-email"; // Universal email sending
@@ -187,11 +216,23 @@ if (process.env.SENTRY_DSN) {
 
 // Create HTTP server (CloudFlare handles SSL termination)
 const server = http.createServer(app);
+const io = new SocketIOServer(server, {
+  cors: { origin: config.allowedOrigins, credentials: true },
+});
+setPaymentsSocketIO(io);
 
 // Trust proxy (needed when behind Cloudflare/NGINX for correct IPs and HTTPS)
 app.set("trust proxy", 1);
 // Telegram webhook (no auth; Telegram posts updates here). Keep before error handlers.
 app.use("/api/telegram/webhook", telegramWebhookRouter);
+// Stripe webhook BEFORE express.json (raw body needed for signature verification)
+if (config.stripeWebhookSecret) {
+  app.post(
+    "/api/payments/webhook",
+    express.raw({ type: "application/json" }),
+    handleStripeWebhook
+  );
+}
 
 // Configure CORS with allowed origins
 app.use(
@@ -240,6 +281,7 @@ app.use("/api/auth", tokenRefreshRouter); // Token refresh endpoint
 app.use("/api/support", supportRouter);
 // app.use("/api/ai-analytics", aiAnalyticsRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/payments", paymentsEnhancedRouter); // Stripe payment intents & methods
 
 // Admin routes - PROTECTED with requireAdmin middleware
 // app.use(
@@ -321,14 +363,6 @@ app.use("/api/auth/2fa", twoFactorRouter);
 // app.use("/api/health-readings", healthReadingsRouter);
 app.use("/api/password-recovery", passwordRecoveryRouter); // Password recovery & admin user lookup
 app.use("/api/auth", emailSignupRouter); // Email magic link signup
-
-const io = new SocketIOServer(server, {
-  cors: {
-    origin: config.allowedOrigins,
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
 
 // Socket.IO connection handling
 // JWT auth for Socket.IO handshake
@@ -418,17 +452,16 @@ app.use(notFoundHandler);
 // Global error handler (MUST be last middleware)
 app.use(errorHandler);
 
+// New /joke route
+app.get("/joke", async (req, res) => {
+  try {
+    await getJoke(); // This will log the joke to the console
+    res.json({ success: true, message: "Joke generated and logged!" });
+  } catch (error) {
+    console.error("Error generating joke:", error);
+    res.status(500).json({ success: false, error: "Failed to generate joke" });
+  }
+});
+
 // Start server
 const PORT = config.port || process.env.PORT || 5000;
-
-// Run environment inspection
-console.log("[DIAG] invoking envInspector.logInspection()");
-envInspector.logInspection();
-console.log("[DIAG] completed envInspector.logInspection()");
-
-console.log(`[DIAG] attempting server.listen on port ${PORT}`);
-server.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📡 Socket.IO enabled for real-time notifications`);
-  console.log(`🔒 Security middleware active`);
-});
