@@ -5,7 +5,7 @@ import prisma from "../prismaClient";
 const router = Router();
 
 // Check for data breaches
-router.get("/breach-check", authenticateToken, async (req, res) => {
+router.get("/breach-check", authenticateToken, async (req: any, res) => {
   try {
     const userId = req.user.userId;
     const user = await prisma.user.findUnique({
@@ -42,25 +42,29 @@ router.get("/breach-check", authenticateToken, async (req, res) => {
 });
 
 // Activate breach monitoring
-router.post("/activate-monitoring", authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.userId;
+router.post(
+  "/activate-monitoring",
+  authenticateToken,
+  async (req: any, res) => {
+    try {
+      const userId = req.user.userId;
 
-    // Update user settings to enable monitoring
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        // Add a breachMonitoring field to User model
-        // breachMonitoring: true,
-      },
-    });
+      // Update user settings to enable monitoring
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          // Add a breachMonitoring field to User model
+          // breachMonitoring: true,
+        },
+      });
 
-    res.json({ success: true, monitoring: true });
-  } catch (error) {
-    console.error("Monitoring activation error:", error);
-    res.status(500).json({ error: "Failed to activate monitoring" });
+      res.json({ success: true, monitoring: true });
+    } catch (error) {
+      console.error("Monitoring activation error:", error);
+      res.status(500).json({ error: "Failed to activate monitoring" });
+    }
   }
-});
+);
 
 // Rotate IP (proxy/VPN simulation)
 router.post("/rotate-ip", authenticateToken, async (req, res) => {

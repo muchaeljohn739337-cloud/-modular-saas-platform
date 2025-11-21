@@ -27,9 +27,6 @@ export interface JWTPayload {
 
 export interface AuthRequest extends Request {
   user?: JWTPayload;
-  body?: any;
-  query?: any;
-  params?: any;
 }
 
 /**

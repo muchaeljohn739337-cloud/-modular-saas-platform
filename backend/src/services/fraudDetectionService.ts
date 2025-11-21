@@ -5,7 +5,7 @@
 
 import { PrismaClient } from "@prisma/client";
 import axios from "axios";
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 
 const prisma = new PrismaClient();
 
@@ -369,7 +369,7 @@ export async function checkDuplicateWithdrawalAddress(
  * Express middleware: Block if velocity limit exceeded
  */
 export async function checkWithdrawalVelocityMiddleware(
-  req: Request,
+  req: any,
   res: Response,
   next: NextFunction
 ) {
@@ -400,7 +400,7 @@ export async function checkWithdrawalVelocityMiddleware(
  * Express middleware: Block if IP is high-risk
  */
 export async function checkIPReputationMiddleware(
-  req: Request,
+  req: any,
   res: Response,
   next: NextFunction
 ) {

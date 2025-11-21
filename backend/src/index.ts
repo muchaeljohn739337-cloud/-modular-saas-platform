@@ -184,7 +184,6 @@ import withdrawalsRouter from "./routes/withdrawals";
 // import { setSocketIO as setNotificationSocket } from "./services/notificationService";
 // import "./tracing";
 import { dataMasker } from "./utils/dataMasker";
-import { envInspector } from "./utils/envInspector";
 import { initSentry } from "./utils/sentry";
 import { sanitizeInput } from "./validation/middleware";
 // Global fatal error handlers to expose startup issues clearly
