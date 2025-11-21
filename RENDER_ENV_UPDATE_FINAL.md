@@ -1,8 +1,8 @@
 # 🚀 Final Render Environment Variable Updates
 
 **Service**: advancia-backend (srv-d4froq8gjchc73djvp00)
-**Date**: November 20, 2025
-**URL**: https://dashboard.render.com/web/srv-d4froq8gjchc73djvp00/env
+**Date**: November 21, 2025
+**URL**: <https://dashboard.render.com/web/srv-d4froq8gjchc73djvp00/env>
 
 ---
 
@@ -45,22 +45,28 @@ Value: whsec_yCcQbvfb1lH1JEeUTyNvhvATXMc2kcUl
 
 Click **"Save Changes"** button at bottom of page
 
-Render will automatically redeploy (takes 2-3 minutes)
+Render will automatically redeploy (typically 2–5 minutes; free tier may take longer to warm up)
 
 ---
 
 ## ✅ STEP 4: Test After Deployment
 
-Wait for deployment to complete, then run:
+Wait for deployment to complete, then run (Render URL):
 
 ```bash
-curl https://api.advanciapayledger.com/api/health
+curl https://advancia-backend.onrender.com/health
 ```
 
 **Expected Response:**
 
 ```json
-{ "status": "healthy", "timestamp": "2025-11-20T..." }
+{ "status": "ok", "timestamp": "2025-11-21T..." }
+```
+
+Optional (AI demo endpoint):
+
+```bash
+curl https://advancia-backend.onrender.com/joke
 ```
 
 ---
@@ -83,11 +89,14 @@ curl https://api.advanciapayledger.com/api/health
 - ✅ **Stripe Webhooks** → Payment events will be received and verified
 - ✅ **Real-time Updates** → Socket.IO will work for payment status
 
+Note: Build failures caused by Prisma 7 (P1012: datasource url in schema) are mitigated by pinning Prisma CLI and client to 5.22.0 in `backend/package.json`.
+
 ---
 
 ## 🔗 Stripe Webhook Configuration
 
-**Endpoint URL**: `https://api.advanciapayledger.com/api/payments/webhook`
+**Endpoint URL** (Render URL during testing): `https://advancia-backend.onrender.com/api/payments/webhook`
+Once your custom domain is active, switch to: `https://api.advanciapayledger.com/api/payments/webhook`
 
 **Events Configured**:
 
@@ -97,7 +106,7 @@ curl https://api.advanciapayledger.com/api/health
 
 **Webhook Secret**: `whsec_yCcQbvfb1lH1JEeUTyNvhvATXMc2kcUl`
 
-View in Dashboard: https://dashboard.stripe.com/test/webhooks
+View in Dashboard: <https://dashboard.stripe.com/test/webhooks>
 
 ---
 
@@ -112,4 +121,4 @@ View in Dashboard: https://dashboard.stripe.com/test/webhooks
 ---
 
 **Ready to update Render?** Go to:
-https://dashboard.render.com/web/srv-d4froq8gjchc73djvp00/env
+<https://dashboard.render.com/web/srv-d4froq8gjchc73djvp00/env>
