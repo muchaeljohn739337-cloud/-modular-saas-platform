@@ -4,6 +4,18 @@
   "MD013": false,
   "MD033": false,
   "MD041": false,
+  "MD001": true,
+  "MD003": {
+    "style": "atx"
+  },
+  "MD004": {
+    "style": "dash"
+  },
+  "MD005": true,
+  "MD007": {
+    "indent": 4,
+    "start_indented": false
+  },
   "list-marker-space": {
     "ul_multi": 3,
     "ul_single": 3
