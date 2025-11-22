@@ -40,7 +40,7 @@ export async function createFraudAlert(params: {
   metadata?: any;
   actionTaken?: string;
 }) {
-  const alert = await prisma.fraudAlert.create({
+  const alert = await prisma.fraud_alerts.create({
     data: {
       userId: params.userId,
       alertType: params.alertType,
@@ -123,7 +123,7 @@ export async function checkIPReputation(
 
   try {
     // Check cache first
-    let ipRep = await prisma.iPReputation.findUnique({
+    let ipRep = await prisma.ip_reputations.findUnique({
       where: { ipAddress },
     });
 
@@ -156,7 +156,7 @@ export async function checkIPReputation(
         if (isProxy) riskScore += 40;
         if (isHosting) riskScore += 20;
 
-        ipRep = await prisma.iPReputation.upsert({
+        ipRep = await prisma.ip_reputations.upsert({
           where: { ipAddress },
           create: {
             ipAddress,
@@ -463,7 +463,7 @@ export async function getFraudAlerts(params: {
     where.userId = userId;
   }
 
-  const alerts = await prisma.fraudAlert.findMany({
+  const alerts = await prisma.fraud_alerts.findMany({
     where,
     orderBy: { createdAt: "desc" },
     take: limit,
@@ -480,7 +480,7 @@ export async function resolveFraudAlert(
   adminUserId: string,
   notes?: string
 ) {
-  const alert = await prisma.fraudAlert.update({
+  const alert = await prisma.fraud_alerts.update({
     where: { id: alertId },
     data: {
       resolved: true,
@@ -500,7 +500,7 @@ export async function updateIPReputation(
   ipAddress: string,
   action: "blacklist" | "whitelist" | "reset"
 ) {
-  const ipRep = await prisma.iPReputation.upsert({
+  const ipRep = await prisma.ip_reputations.upsert({
     where: { ipAddress },
     create: {
       ipAddress,
@@ -531,21 +531,21 @@ export async function getFraudStats(startDate?: Date, endDate?: Date) {
   }
 
   const [totalAlerts, bySeverity, byType, unresolved] = await Promise.all([
-    prisma.fraudAlert.count({ where }),
+    prisma.fraud_alerts.count({ where }),
 
-    prisma.fraudAlert.groupBy({
+    prisma.fraud_alerts.groupBy({
       by: ["severity"],
       where,
       _count: true,
     }),
 
-    prisma.fraudAlert.groupBy({
+    prisma.fraud_alerts.groupBy({
       by: ["alertType"],
       where,
       _count: true,
     }),
 
-    prisma.fraudAlert.count({
+    prisma.fraud_alerts.count({
       where: { ...where, resolved: false },
     }),
   ]);

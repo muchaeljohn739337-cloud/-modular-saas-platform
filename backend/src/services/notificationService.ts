@@ -1,7 +1,7 @@
-import prisma from "../prismaClient";
-import webpush from "web-push";
 import * as nodemailer from "nodemailer";
 import { Server as SocketServer } from "socket.io";
+import webpush from "web-push";
+import prisma from "../prismaClient";
 
 // Configure VAPID (will be set from env)
 const vapidPublicKey = process.env.VAPID_PUBLIC_KEY || "";
@@ -60,13 +60,13 @@ export async function createNotification(payload: NotificationPayload) {
 
   try {
     // Get user preferences
-    let userPrefs = await prisma.notifications_preferences.findUnique({
+    let userPrefs = await prisma.notification_preferences.findUnique({
       where: { userId },
     });
 
     // Create default preferences if none exist
     if (!userPrefs) {
-      userPrefs = await prisma.notifications_preferences.create({
+      userPrefs = await prisma.notification_preferences.create({
         data: { userId },
       });
     }
@@ -291,7 +291,7 @@ async function logDelivery(
   errorMessage?: string
 ) {
   try {
-    await prisma.notificationsLog.create({
+    await prisma.notifications.create({
       data: {
         notificationId,
         channel,
@@ -475,12 +475,12 @@ export async function deleteNotification(
 }
 
 export async function getUserPreferences(userId: string) {
-  let prefs = await prisma.notifications_preferences.findUnique({
+  let prefs = await prisma.notification_preferences.findUnique({
     where: { userId },
   });
 
   if (!prefs) {
-    prefs = await prisma.notifications_preferences.create({
+    prefs = await prisma.notification_preferences.create({
       data: { userId },
     });
   }
@@ -489,7 +489,7 @@ export async function getUserPreferences(userId: string) {
 }
 
 export async function updateUserPreferences(userId: string, updates: any) {
-  return await prisma.notifications_preferences.upsert({
+  return await prisma.notification_preferences.upsert({
     where: { userId },
     update: updates,
     create: { userId, ...updates },
