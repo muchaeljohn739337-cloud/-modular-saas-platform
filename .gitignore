@@ -93,6 +93,9 @@ watchdog-config.ps1
 CLOUDFLARE_CREDENTIALS.md
 *_CREDENTIALS.md
 cloudflare-secrets.txt
+
+# Render deployment secrets
+RENDER_DEPLOYMENT_SECRETS.md
 .dev.vars
 frontend/.dev.vars
 **/wrangler-*.toml
