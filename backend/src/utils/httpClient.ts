@@ -34,10 +34,25 @@ class SaaSHttpClient {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
+    // Import proxy agent if enabled
+    let httpAgent, httpsAgent;
+    try {
+      const { getProxyAgent } = require("./globalProxyAgent");
+      const agent = getProxyAgent();
+      if (agent) {
+        httpAgent = agent;
+        httpsAgent = agent;
+      }
+    } catch (e) {
+      // Proxy not configured, use defaults
+    }
+
     this.client = axios.create({
       baseURL,
       timeout,
       headers,
+      ...(httpAgent && { httpAgent }),
+      ...(httpsAgent && { httpsAgent }),
     });
 
     // Response interceptor for centralized error handling

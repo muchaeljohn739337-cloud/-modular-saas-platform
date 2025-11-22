@@ -213,5 +213,6 @@
     "editor.defaultFormatter": "ms-azuretools.vscode-containers"
   },
   "testing.automaticallyOpenTestResults": "neverOpen",
-  "prisma.pinToPrisma6": false
+  "prisma.pinToPrisma6": false,
+  "yaml.maxItemsComputed": 10000
 }

@@ -18,11 +18,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+
+      - name: Install pnpm
+        run: npm install -g pnpm
 
       - name: Backend - Install deps
         working-directory: backend
-        run: npm ci
+        run: pnpm install --no-frozen-lockfile
 
       - name: Backend - Build
         working-directory: backend
@@ -41,7 +43,7 @@ jobs:
         working-directory: frontend
         run: |
           if [ -f package.json ]; then
-            npm ci
+            pnpm install --no-frozen-lockfile
           else
             echo "No frontend/package.json; skipping install"
           fi

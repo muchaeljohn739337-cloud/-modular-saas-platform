@@ -194,6 +194,14 @@ import { sanitizeInput } from "./validation/middleware";
 // (Legacy instrumentation removed; using EARLY DIAGNOSTIC INSTRUMENTATION above)
 
 import { config } from "./config";
+import { setupGlobalProxy } from "./utils/globalProxyAgent";
+
+// Setup global proxy configuration for all outbound HTTP/HTTPS requests
+try {
+  setupGlobalProxy();
+} catch (e) {
+  console.error("[DIAG] Global proxy setup failed", e);
+}
 
 // Safe middleware wrappers (prevent undefined crashes during partial builds)
 const safeAuth: any =

@@ -112,6 +112,51 @@ function getAllowedOrigins(): string[] {
   return [...set];
 }
 
+/**
+ * Get proxy configuration from environment
+ */
+function getProxyConfig() {
+  const enabled = process.env.PROXY_ENABLED === "true";
+
+  if (!enabled) {
+    return {
+      enabled: false,
+      type: "http" as const,
+      host: "",
+      port: 0,
+    };
+  }
+
+  const type = (process.env.PROXY_TYPE || "http") as
+    | "http"
+    | "https"
+    | "socks4"
+    | "socks5";
+  const host = process.env.PROXY_HOST || "";
+  const port = parseInt(process.env.PROXY_PORT || "8080", 10);
+  const username = process.env.PROXY_USERNAME;
+  const password = process.env.PROXY_PASSWORD;
+  const bypass = process.env.PROXY_BYPASS
+    ? process.env.PROXY_BYPASS.split(",").map((s) => s.trim())
+    : ["localhost", "127.0.0.1"];
+
+  const config = {
+    enabled: true,
+    type,
+    host,
+    port,
+    bypass,
+    ...(username && password ? { auth: { username, password } } : {}),
+  };
+
+  console.log(`🌐 Proxy enabled: ${type}://${host}:${port}`);
+  if (bypass.length > 0) {
+    console.log(`   Bypass domains: ${bypass.join(", ")}`);
+  }
+
+  return config;
+}
+
 export const config = {
   port: parseInt(process.env.PORT || "4000", 10),
   frontendUrl: process.env.FRONTEND_URL || "http://localhost:3000",
@@ -124,6 +169,7 @@ export const config = {
   nodeEnv: process.env.NODE_ENV || "development",
   stripeSecretKey: process.env.STRIPE_SECRET_KEY,
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+  proxy: getProxyConfig(),
 };
 
 // Validate required configuration
@@ -141,4 +187,3 @@ if (!config.stripeSecretKey) {
     "⚠️  STRIPE_SECRET_KEY not set. Payment endpoints will be disabled."
   );
 }
-
