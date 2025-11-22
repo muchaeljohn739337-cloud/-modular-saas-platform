@@ -1,6 +1,14 @@
-"use client"
+"use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import BalanceChart from "@/components/BalanceChart";
+import BalanceDropdown from "@/components/BalanceDropdown";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import ProfileOverviewCard from "@/components/ProfileOverviewCard";
+import SummaryCard from "@/components/SummaryCard";
+import TransactionList from "@/components/TransactionList";
+import { useBalance } from "@/hooks/useBalance";
+import { useSoundFeedback } from "@/hooks/useSoundFeedback";
+import { useTransactions } from "@/hooks/useTransactions";
 import { AnimatePresence } from "framer-motion";
 import {
   Activity,
@@ -11,16 +19,8 @@ import {
   TrendingUp,
   Wallet,
 } from "lucide-react";
-import SummaryCard from "@/components/SummaryCard";
-import BalanceDropdown from "@/components/BalanceDropdown";
-import TransactionList from "@/components/TransactionList";
-import BalanceChart from "@/components/BalanceChart";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import ProfileOverviewCard from "@/components/ProfileOverviewCard";
-import { useBalance } from "@/hooks/useBalance";
-import { useTransactions } from "@/hooks/useTransactions";
-import { useSoundFeedback } from "@/hooks/useSoundFeedback";
 import { useSession } from "next-auth/react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const DEMO_USER_ID = "00000000-0000-0000-0000-000000000001";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -38,10 +38,13 @@ export default function Dashboard() {
   const [hasRecentActivity, setHasRecentActivity] = useState(false);
   const [topUpLoading, setTopUpLoading] = useState(false);
   const previousTransactionCount = useRef<number>(0);
-  
+
   const { data: session } = useSession();
   const sessionUser = session?.user as SessionUser | undefined;
-  const userId = sessionUser?.id && sessionUser.id.length > 0 ? sessionUser.id : DEMO_USER_ID;
+  const userId =
+    sessionUser?.id && sessionUser.id.length > 0
+      ? sessionUser.id
+      : DEMO_USER_ID;
 
   const displayName = useMemo(() => {
     if (sessionUser?.name && sessionUser.name.trim().length > 0) {
@@ -54,7 +57,7 @@ export default function Dashboard() {
   }, [sessionUser?.name, sessionUser?.email]);
 
   const initials = useMemo(() => {
-    const parts = displayName.split(/\s+/).filter(Boolean);
+    const parts = (displayName || "Advancia User").split(/\s+/).filter(Boolean);
     if (!parts.length) return "AU";
     const first = parts[0]?.[0] ?? "";
     const last = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? "" : "";
@@ -127,7 +130,8 @@ export default function Dashboard() {
     const txArray = Array.isArray(transactions) ? transactions : [];
 
     txArray.forEach((tx) => {
-      const amount = typeof tx.amount === "number" ? tx.amount : Number(tx.amount);
+      const amount =
+        typeof tx.amount === "number" ? tx.amount : Number(tx.amount);
       if (Number.isNaN(amount)) return;
 
       switch (tx.type) {
@@ -172,23 +176,25 @@ export default function Dashboard() {
   const notifyTopUpError = async (message: string) => {
     // Log error silently for debugging
     console.error("Top up error:", message);
-    
+
     // Send error to admin endpoint (RPA monitoring)
     try {
       await fetch(`${API_URL}/api/admin/error-report`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          type: 'checkout_error',
+          type: "checkout_error",
           message,
-          timestamp: new Date().toISOString()
-        })
-      }).catch(() => {/* Silent fail */});
+          timestamp: new Date().toISOString(),
+        }),
+      }).catch(() => {
+        /* Silent fail */
+      });
     } catch {
       // Silent fail - don't notify user about monitoring errors
     }
-    
+
     // Show generic friendly message to user (not technical details)
     alert("We're processing your request. Please try again in a moment.");
   };
@@ -275,7 +281,9 @@ export default function Dashboard() {
 
   // Show loading spinner on initial load
   if (isInitialLoading) {
-    return <LoadingSpinner size="lg" variant="both" message="Loading Dashboard..." />;
+    return (
+      <LoadingSpinner size="lg" variant="both" message="Loading Dashboard..." />
+    );
   }
 
   if (isLoading && !balance && txArray.length === 0) {
@@ -304,7 +312,8 @@ export default function Dashboard() {
                 Advancia Pay Ledger
               </h1>
               <p className="mt-2 max-w-xl text-base text-gray-600">
-                Track balances, rewards, and token activity across your multi-currency wallets with instant updates.
+                Track balances, rewards, and token activity across your
+                multi-currency wallets with instant updates.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -381,9 +390,13 @@ export default function Dashboard() {
               <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
                 <Award className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800">Welcome to Advancia!</h3>
+              <h3 className="text-2xl font-bold text-slate-800">
+                Welcome to Advancia!
+              </h3>
               <p className="text-slate-600">
-                Your dashboard is ready. Get started by adding funds to unlock all platform features including crypto trading, token management, and rewards.
+                Your dashboard is ready. Get started by adding funds to unlock
+                all platform features including crypto trading, token
+                management, and rewards.
               </p>
               <button
                 onClick={() => {
@@ -397,7 +410,7 @@ export default function Dashboard() {
                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-3 font-semibold text-white shadow-lg transition hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
               >
                 <ArrowUpRight className="w-5 h-5" />
-                {topUpLoading ? 'Processing...' : 'Add Your First Funds'}
+                {topUpLoading ? "Processing..." : "Add Your First Funds"}
               </button>
             </div>
           </div>
@@ -436,28 +449,32 @@ export default function Dashboard() {
 
         {balance?.portfolio && (
           <section className="grid gap-4 sm:grid-cols-3">
-            {([
-              {
-                label: "Admin USD Credits",
-                value: balance.portfolio.USD,
-                suffix: "USD",
-              },
-              {
-                label: "Admin ETH Drops",
-                value: balance.portfolio.ETH,
-                suffix: "ETH",
-              },
-              {
-                label: "Admin BTC Drops",
-                value: balance.portfolio.BTC,
-                suffix: "BTC",
-              },
-            ] as const).map((entry) => (
+            {(
+              [
+                {
+                  label: "Admin USD Credits",
+                  value: balance.portfolio.USD,
+                  suffix: "USD",
+                },
+                {
+                  label: "Admin ETH Drops",
+                  value: balance.portfolio.ETH,
+                  suffix: "ETH",
+                },
+                {
+                  label: "Admin BTC Drops",
+                  value: balance.portfolio.BTC,
+                  suffix: "BTC",
+                },
+              ] as const
+            ).map((entry) => (
               <div
                 key={entry.label}
                 className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
               >
-                <p className="text-sm font-medium text-slate-500">{entry.label}</p>
+                <p className="text-sm font-medium text-slate-500">
+                  {entry.label}
+                </p>
                 <p className="mt-2 text-2xl font-bold text-slate-800">
                   {entry.value.toLocaleString(undefined, {
                     maximumFractionDigits: entry.suffix === "USD" ? 2 : 6,
@@ -476,28 +493,41 @@ export default function Dashboard() {
 
         <section className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
-            <TransactionList transactions={txArray} loading={transactionsLoading} />
+            <TransactionList
+              transactions={txArray}
+              loading={transactionsLoading}
+            />
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-slate-500">Total Transactions</p>
-                    <p className="mt-2 text-2xl font-bold text-slate-800">{txArray.length}</p>
+                    <p className="text-sm font-medium text-slate-500">
+                      Total Transactions
+                    </p>
+                    <p className="mt-2 text-2xl font-bold text-slate-800">
+                      {txArray.length}
+                    </p>
                   </div>
                   <div className="rounded-lg bg-blue-50 p-3 text-blue-600">
                     <PieChart className="w-6 h-6" />
                   </div>
                 </div>
                 <p className="mt-4 text-sm text-slate-500">
-                  Combined credits, debits, and bonus events captured in the last sync.
+                  Combined credits, debits, and bonus events captured in the
+                  last sync.
                 </p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-slate-500">Average Ticket Size</p>
+                    <p className="text-sm font-medium text-slate-500">
+                      Average Ticket Size
+                    </p>
                     <p className="mt-2 text-2xl font-bold text-slate-800">
-                      ${Number.isFinite(totals.average) ? totals.average.toFixed(2) : "0.00"}
+                      $
+                      {Number.isFinite(totals.average)
+                        ? totals.average.toFixed(2)
+                        : "0.00"}
                     </p>
                   </div>
                   <div className="rounded-lg bg-emerald-50 p-3 text-emerald-600">
@@ -505,7 +535,8 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <p className="mt-4 text-sm text-slate-500">
-                  Based on gross transaction volume over the current reporting period.
+                  Based on gross transaction volume over the current reporting
+                  period.
                 </p>
               </div>
             </div>
@@ -515,7 +546,9 @@ export default function Dashboard() {
               <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-slate-500">Monthly Rewards</p>
+                    <p className="text-sm font-medium text-slate-500">
+                      Monthly Rewards
+                    </p>
                     <p className="mt-2 text-2xl font-bold text-slate-800">
                       ${(balance?.earnings ?? totals.bonuses).toFixed(2)}
                     </p>
@@ -536,7 +569,10 @@ export default function Dashboard() {
 
       <AnimatePresence>
         {showBreakdown && balance && (
-          <BalanceDropdown balance={balance} onClose={() => setShowBreakdown(false)} />
+          <BalanceDropdown
+            balance={balance}
+            onClose={() => setShowBreakdown(false)}
+          />
         )}
       </AnimatePresence>
     </main>

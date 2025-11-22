@@ -157,7 +157,20 @@ function getProxyConfig() {
   return config;
 }
 
-export const config = {
+export const config: {
+  port: number;
+  frontendUrl: string;
+  allowedOrigins: string[];
+  databaseUrl: string | undefined;
+  redisUrl: string | undefined;
+  jwtSecret: string;
+  jwtExpiration: string;
+  sessionSecret: string;
+  nodeEnv: string;
+  stripeSecretKey: string | undefined;
+  stripeWebhookSecret: string | undefined;
+  proxy: any;
+} = {
   port: parseInt(process.env.PORT || "4000", 10),
   frontendUrl: process.env.FRONTEND_URL || "http://localhost:3000",
   allowedOrigins: getAllowedOrigins(),

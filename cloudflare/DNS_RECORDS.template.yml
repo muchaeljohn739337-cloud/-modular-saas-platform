@@ -1,0 +1,28 @@
+# Fill in your actual values below, then apply via the Cloudflare dashboard or API
+# Notes:
+# - Cloudflare supports CNAME flattening at the apex (@). Keep proxied=true.
+# - Use a low TTL (120s) for initial cutover; raise to 1800s after stability.
+# - Replace placeholders: <YOUR_DOMAIN>, <VERCEL_CNAME>, <RENDER_CUSTOM_DOMAIN>
+
+zone: <YOUR_DOMAIN>
+records:
+  # Apex/root -> Vercel (CNAME flattening)
+  - type: CNAME
+    name: "@"
+    content: <VERCEL_CNAME> # e.g., cname.vercel-dns.com or <project>.vercel-dns.com
+    proxied: true
+    ttl: 120
+
+  # www -> Vercel
+  - type: CNAME
+    name: "www"
+    content: <VERCEL_CNAME> # e.g., <project>.vercel-dns.com
+    proxied: true
+    ttl: 120
+
+  # api -> Render custom domain
+  - type: CNAME
+    name: "api"
+    content: <RENDER_CUSTOM_DOMAIN> # e.g., your-api-service.onrender.com or custom Render domain
+    proxied: true
+    ttl: 120

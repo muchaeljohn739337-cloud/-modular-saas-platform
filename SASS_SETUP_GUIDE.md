@@ -6,7 +6,9 @@
 
 ## 📁 Project Structure
 
-```
+### Directory Layout
+
+```text
 styles/
 ├── main.scss                 # Main entry point (imports everything)
 ├── base/
@@ -296,7 +298,7 @@ Then import it in `main.scss`:
 
 ## 🎨 Live Development Setup
 
-### Option 1: With Live Server (Recommended)
+### Option 1 - With Live Server (Recommended)
 
 ```powershell
 # Terminal 1: Watch Sass
@@ -306,7 +308,7 @@ npm run sass:watch
 # Right-click index.html → "Open with Live Server"
 ```
 
-### Option 2: With npm-run-all
+### Option 2 - With npm-run-all
 
 ```powershell
 # Install npm-run-all
@@ -406,4 +408,4 @@ $color-usdt: #26a17b
 
 **🎉 You're all set! Start editing `.scss` files and watch them compile automatically.**
 
-**Questions? Check the Sass official docs:** https://sass-lang.com/documentation/
+**Questions? Check the Sass official docs:** <https://sass-lang.com/documentation/>

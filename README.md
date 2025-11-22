@@ -12,10 +12,21 @@ It provides authentication, payments, crypto wallets, dashboards, and real-time 
 - **Frontend** → Next.js 14 App Router (Vercel)
 - **Backend** → Node.js + Express + Socket.IO (Render)
 - **Database** → PostgreSQL (Render)
-- **Backups** → Digital Ocean Spaces (S3-compatible, automated nightly)
+- **Backups** → Cloudflare R2 (S3-compatible, automated nightly via GitHub Actions)
 - **CDN/DNS** → Cloudflare (WAF, SSL, Rate Limiting, Bot Protection)
 - **Monitoring** → Sentry
 - **CI/CD** → GitHub Actions (tests + automated backups)
+
+---
+
+## 🔗 Quick Links
+
+- Deployment checklist: `DEPLOY_CHECKLIST_PRODUCTION.md`
+- Backup workflow guide: `.github/workflows/BACKUP_WORKFLOW.md`
+- DNS cutover plan: `CLOUDFLARE_DNS_PLAN.md`
+- Cloudflare DNS records template: `cloudflare/DNS_RECORDS.template.yml`
+- Render blueprint: `render.yaml`
+- Frontend rewrites: `frontend/next.config.mjs`
 
 ---
 
@@ -25,7 +36,7 @@ It provides authentication, payments, crypto wallets, dashboards, and real-time 
 
 - **Backend**: Render (Web Service + PostgreSQL)
 - **Frontend**: Vercel (Next.js)
-- **Backups**: Digital Ocean Spaces (automated nightly via GitHub Actions)
+- **Backups**: Cloudflare R2 (automated nightly via GitHub Actions)
 - **CDN**: Cloudflare
 
 **Quick Deploy:**
@@ -84,7 +95,7 @@ See `backend/.env.example` for required keys (JWT_SECRET, STRIPE keys, DATABASE_
 **Automated Workflows:**
 
 - **Tests**: Run on every PR (see `.github/workflows/ci.yml`)
-- **Backups**: Nightly database backups to Digital Ocean Spaces
+- **Backups**: Nightly database backups to Cloudflare R2
 - **Deployments**: Auto-deploy to Render (backend) and Vercel (frontend) on push to `main`
 
 **Key Scripts:**

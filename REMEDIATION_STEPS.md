@@ -31,7 +31,7 @@
 
 ### Step 3.1: Revoke Stripe Keys
 
-```
+```text
 1. Open: https://dashboard.stripe.com/test/apikeys
 2. Find key: sk_test_51SCXq1CnLcSzsQoTXqbzLwgmT6Mbb8Fj2ZEngSnjmwnm2P0iZGZKq2oYHWHwKAgAGRLs3qm0FUacfQ06oL6jvZYf00j1763pTI
 3. Click "Delete" or "Roll Key"
@@ -42,7 +42,7 @@
 
 ### Step 3.2: Revoke GitHub Token
 
-```
+```text
 1. Open: https://github.com/settings/tokens
 2. Find token: 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
 3. Click "Delete"
@@ -84,7 +84,7 @@ Copy-Item .env.NEW .env.local
 
 ### Step 4.2: Update GitHub Secrets
 
-```
+```text
 1. Open: https://github.com/muchaeljohn739337-cloud/-modular-saas-platform/settings/secrets/actions
 2. Update these secrets:
    - JWT_SECRET → tG3DgbZdj1BxjSCAOsmqy0BmSyx2gqcse5sSaR4Nna+MStuX8nIRZ4C/B5GiHY7E4ilVGbOhZMy5WdC5/oOcug==
@@ -220,7 +220,7 @@ git push origin --force --tags
 
 ### Step 7.2: Enable GitHub Security Features
 
-```
+```text
 1. Go to: https://github.com/muchaeljohn739337-cloud/-modular-saas-platform/settings/security_analysis
 2. Enable:
    - Dependabot alerts
@@ -282,8 +282,8 @@ npm run dev  # in both backend/ and frontend/
 
 ## 📞 Support Contacts
 
-- **Security Team**: security@advancia.com
-- **DevOps**: devops@advancia.com
+- **Security Team**: <security@advancia.com>
+- **DevOps**: <devops@advancia.com>
 - **On-Call**: +1-XXX-XXX-XXXX
 
 ---

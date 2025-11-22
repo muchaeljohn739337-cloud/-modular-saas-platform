@@ -1,16 +1,16 @@
 import { Response, Router } from "express";
 import type { Server as IOServer } from "socket.io";
 import {
-    authenticateToken,
-    AuthRequest,
-    logAdminAction,
-    requireAdmin,
+  authenticateToken,
+  AuthRequest,
+  logAdminAction,
+  requireAdmin,
 } from "../middleware/auth";
 import { validateSchema } from "../middleware/validateSchema";
 import prisma from "../prismaClient";
 import {
-    WithdrawalAdminActionSchema,
-    WithdrawalRequestSchema,
+  WithdrawalAdminActionSchema,
+  WithdrawalRequestSchema,
 } from "../validation/schemas";
 
 const router = Router();
@@ -32,6 +32,62 @@ export function setWithdrawalSocketIO(io: IOServer) {
   ioRef = io;
 }
 
+// GET /api/withdrawals/methods
+// Get available payment providers for withdrawals
+router.get(
+  "/methods",
+  safeAuth as any,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const methods = [
+        {
+          provider: "cryptomus",
+          name: "Cryptomus",
+          description: "50+ cryptocurrencies supported",
+          currencies: ["btc", "eth", "usdt", "bnb", "ltc", "doge"],
+          minAmount: 10,
+          fees: "1%",
+          processingTime: "5-30 minutes",
+          features: [
+            "Fast processing",
+            "Popular currencies",
+            "Instant payouts",
+          ],
+        },
+        {
+          provider: "nowpayments",
+          name: "NOWPayments",
+          description: "200+ cryptocurrencies supported",
+          currencies: [
+            "btc",
+            "eth",
+            "usdt",
+            "trx",
+            "ltc",
+            "xmr",
+            "doge",
+            "ada",
+            "dot",
+            "matic",
+          ],
+          minAmount: 10,
+          fees: "0.5%",
+          processingTime: "10-60 minutes",
+          features: ["Lowest fees", "Most currencies", "Mass payouts"],
+          recommended: true,
+        },
+      ];
+
+      return res.json({ success: true, methods });
+    } catch (err) {
+      console.error("Error fetching withdrawal methods:", err);
+      return res
+        .status(500)
+        .json({ error: "Failed to fetch withdrawal methods" });
+    }
+  }
+);
+
 // POST /api/withdrawals/request
 // User creates a withdrawal request for USD, BTC, ETH, or USDT
 router.post(
@@ -41,8 +97,28 @@ router.post(
   async (req: AuthRequest, res: Response) => {
     try {
       const userId = req.user!.userId;
-      const { balanceType, amount, withdrawalAddress } = req.body as any;
-      const amountNum = typeof amount === "number" ? amount : parseFloat(amount);
+      const {
+        balanceType,
+        amount,
+        withdrawalAddress,
+        paymentProvider = "cryptomus",
+      } = req.body as any;
+      const amountNum =
+        typeof amount === "number" ? amount : parseFloat(amount);
+
+      // Validate payment provider
+      if (!["cryptomus", "nowpayments"].includes(paymentProvider)) {
+        return res.status(400).json({
+          error: "Invalid payment provider. Choose: cryptomus or nowpayments",
+        });
+      }
+
+      // Get client IP
+      const clientIP =
+        (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
+        (req.headers["x-real-ip"] as string) ||
+        req.socket.remoteAddress ||
+        "Unknown";
 
       // Get user and check balance
       const user = await prisma.user.findUnique({
@@ -55,11 +131,56 @@ router.post(
           btcBalance: true,
           ethBalance: true,
           usdtBalance: true,
+          whitelistedIPs: true,
         },
       });
 
       if (!user) {
         return res.status(404).json({ error: "User not found" });
+      }
+
+      // ============= SECURITY CHECK: IP Whitelist =============
+      if (
+        user.whitelistedIPs.length > 0 &&
+        !user.whitelistedIPs.includes(clientIP)
+      ) {
+        // Log security alert
+        console.warn(
+          `[SECURITY] Withdrawal blocked from unauthorized IP: ${clientIP} for user ${userId}`
+        );
+
+        // TODO: Send security alert email
+        // await sendSecurityAlert(user.email, `Withdrawal attempt blocked from unauthorized IP: ${clientIP}`);
+
+        return res.status(403).json({
+          error: "Withdrawal blocked: IP not whitelisted",
+          hint: "Add this IP via /api/security/whitelist/ip",
+          clientIP,
+        });
+      }
+
+      // ============= SECURITY CHECK: Address Whitelist (for crypto only) =============
+      if (withdrawalAddress && balanceType.toUpperCase() !== "USD") {
+        const isWhitelisted = await prisma.whitelistedAddress.findFirst({
+          where: {
+            userId,
+            address: withdrawalAddress,
+            currency: balanceType.toUpperCase(),
+            verified: true,
+          },
+        });
+
+        if (!isWhitelisted) {
+          console.warn(
+            `[SECURITY] Withdrawal blocked: Address not whitelisted for user ${userId}`
+          );
+
+          return res.status(403).json({
+            error: "Withdrawal address not whitelisted",
+            hint: "Add and verify this address via /api/security/whitelist/address",
+            address: withdrawalAddress,
+          });
+        }
       }
 
       // Determine balance field
@@ -93,6 +214,7 @@ router.post(
           usdEquivalent: balanceType.toUpperCase() === "USD" ? amountNum : 0, // Can be calculated if needed
           withdrawalAddress: withdrawalAddress || "", // Legacy field
           status: "pending",
+          paymentProvider: paymentProvider, // Store selected provider
         },
       });
 

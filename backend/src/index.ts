@@ -85,11 +85,33 @@ console.log("🔧 Node version:", process.version);
 let __earlyFailureTop = false;
 process.on("uncaughtException", (err) => {
   console.error("[FATAL-TOP] Uncaught Exception early:", err);
+  console.error("[FATAL-TOP] Stack:", err.stack);
   __earlyFailureTop = true;
+
+  // Don't exit in development unless it's critical
+  if (
+    process.env.NODE_ENV === "production" &&
+    !err.message.includes("ECONNREFUSED")
+  ) {
+    console.error("[FATAL-TOP] Exiting due to uncaught exception");
+    process.exit(1);
+  } else {
+    console.error(
+      "[FATAL-TOP] Continuing despite exception (development mode)"
+    );
+  }
 });
-process.on("unhandledRejection", (reason) => {
+process.on("unhandledRejection", (reason, promise) => {
   console.error("[FATAL-TOP] Unhandled Rejection early:", reason);
+  console.error("[FATAL-TOP] Promise:", promise);
   __earlyFailureTop = true;
+
+  // Log but don't exit on unhandled rejections in development
+  if (process.env.NODE_ENV !== "production") {
+    console.error(
+      "[FATAL-TOP] Continuing despite rejection (development mode)"
+    );
+  }
 });
 process.on("beforeExit", (code) => {
   console.log(
@@ -127,10 +149,8 @@ import authAdminRouter, {
 } from "./routes/authAdmin";
 console.log("[DIAG] About to import prismaClient...");
 console.log("[DIAG] prismaClient imported successfully");
-// import adminRouter from "./routes/admin"; // TEMPORARILY DISABLED FOR PROD BUILD
 // import adminWalletsRouter from "./routes/adminWallets"; // Disabled for crash isolation
 // import adminBulkActionsRouter from "./routes/adminBulkActions";
-// import adminDashboardRouter from "./routes/adminDashboard";
 // import aiAnalyticsRouter from "./routes/aiAnalytics";
 // import amplitudeAnalyticsRouter from "./routes/amplitudeAnalytics";
 // import analyticsRouter from "./routes/analytics";
@@ -140,7 +160,7 @@ console.log("[DIAG] authRouter imported successfully");
 // import chatRouter, { setChatSocketIO } from "./routes/chat";
 // import consultationRouter from "./routes/consultation";
 // import cryptoEnhancedRouter from "./routes/cryptoEnhanced";
-// import cryptomusRouter from "./routes/cryptomus";
+// import cryptomusRouter from "./routes/cryptomus"; // File removed from repository
 // import debitCardRouter, { setDebitCardSocketIO } from "./routes/debitCard";
 // import debitCardEnhancedRouter from "./routes/debitCardEnhanced";
 // import emailRouter from "./routes/email"; // Email templates router
@@ -169,23 +189,26 @@ import sessionsRouter, {
   setBroadcastSessions as setSessionsBroadcast,
 } from "./routes/sessions";
 import subscribersRouter from "./routes/subscribers";
-import supportRouter /* , { setSupportSocketIO } */ from "./routes/support"; // Re-enabled after middleware hardening
+import supportRouter, { setSupportSocketIO } from "./routes/support"; // Re-enabled after middleware hardening
 import systemRouter from "./routes/system";
 import tokenRefreshRouter from "./routes/tokenRefresh";
-import tokensRouter /* , { setTokenSocketIO } */ from "./routes/tokens";
+import tokensRouter, { setTokenSocketIO } from "./routes/tokens";
 import trustRouter from "./routes/trust"; // Scam Adviser & trust verification
 // import trustpilotRouter from "./routes/trustpilot"; // Removed - using simple widget embed instead
 // import trustScoreRouter from "./routes/trustScore"; // User trust & reputation system (TEMPORARILY DISABLED)
+import nowpaymentsRouter from "./routes/nowpayments"; // NOWPayments crypto provider (200+ coins)
 import pricesRouter from "./routes/prices";
 import securityRouter from "./routes/security"; // Breach monitoring & IP protection
 import telegramRouter from "./routes/telegram";
 import telegramWebhookRouter from "./routes/telegramWebhook";
-import transactionsRouter /* , { setTransactionSocketIO } */ from "./routes/transactions";
+import transactionsRouter, {
+  setTransactionSocketIO,
+} from "./routes/transactions";
 import twoFactorRouter from "./routes/twoFactor";
-// import walletsRouter from "./routes/wallets"; // TEMP DISABLED FOR PROD BUILD
-// import adminUsersRouter, { setAdminUsersSocketIO } from "./routes/users";
+// import adminUsersRouter, { setAdminUsersSocketIO } from "./routes/users"; // File not in active codebase
+// import walletsRouter from "./routes/wallets"; // File not in active codebase
 import withdrawalsRouter from "./routes/withdrawals";
-// import { setSocketIO as setNotificationSocket } from "./services/notificationService";
+// import { setSocketIO as setNotificationSocket } from "./services/notificationService"; // Keep commented for now
 // import "./tracing";
 import { dataMasker } from "./utils/dataMasker";
 import { initSentry } from "./utils/sentry";
@@ -294,6 +317,10 @@ app.use("/api/support", supportRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/payments", paymentsEnhancedRouter); // Stripe payment intents & methods
 
+// Crypto payment providers
+// app.use("/api/cryptomus", cryptomusRouter); // Route file not available
+app.use("/api/nowpayments", nowpaymentsRouter); // NOWPayments crypto payments (200+ coins, 0.5% fees)
+
 // Admin routes - PROTECTED with requireAdmin middleware
 // app.use(
 //   "/api/admin/analytics",
@@ -330,9 +357,9 @@ app.use("/api/admin/telegram", safeAuth, safeAdmin, telegramRouter);
 //   safeAdmin,
 //   adminWalletsRouter
 // );
-// app.use("/api/admin", authenticateToken, requireAdmin, adminUsersRouter);
-// app.use("/api/admin", authenticateToken, requireAdmin, adminDashboardRouter);
-// app.use("/api/admin", authenticateToken, requireAdmin, adminRouter); // TEMPORARILY DISABLED FOR PROD BUILD
+// app.use("/api/admin", authenticateToken, requireAdmin, adminUsersRouter); // Routes not available
+// app.use("/api/admin", authenticateToken, requireAdmin, adminDashboardRouter); // Routes not available
+// app.use("/api/admin", authenticateToken, requireAdmin, adminRouter); // Routes not available
 // app.use(
 //   "/api/admin/bulk",
 //   authenticateToken,
@@ -354,7 +381,7 @@ app.use("/api/sessions", sessionsRouter);
 app.use("/api/withdrawals", withdrawalsRouter);
 // app.use("/api/oal", oalRouter);
 app.use("/api/tokens", tokensRouter);
-// app.use("/api/wallets", walletsRouter); // Custodial HD wallets (BTC/ETH/USDT) - TEMP DISABLED FOR PROD BUILD
+// app.use("/api/wallets", walletsRouter); // Route file not available
 app.use("/api/prices", pricesRouter); // Multi-provider price service (CoinGecko + Binance)
 // app.use("/api/trust-score", trustScoreRouter); // User trust & reputation system (TEMPORARILY DISABLED - import issue)
 // app.use("/api/trustpilot", trustpilotRouter); // Removed - using simple widget embed instead
@@ -398,10 +425,20 @@ io.use(async (socket, next) => {
       return next(new Error("Auth token or guestSessionId required"));
     }
     const cleaned = token.startsWith("Bearer ") ? token.split(" ")[1] : token;
-    const payload = jwt.verify(cleaned, config.jwtSecret) as {
+
+    if (!cleaned) {
+      return next(new Error("Invalid token format"));
+    }
+
+    interface JWTPayload {
       userId: string;
       email?: string;
-    };
+    }
+
+    const payload = jwt.verify(
+      cleaned,
+      config.jwtSecret!
+    ) as unknown as JWTPayload;
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
       select: { id: true, role: true, active: true },
@@ -435,25 +472,22 @@ export function broadcastSessions() {
   io.to("admins").emit("sessions:update", activeSessions);
 }
 
-// Inject Socket.IO into services/routers that need it (minimal set)
-// setNotificationSocket(io);
-// setTransactionSocketIO(io);
-// setAdminUsersSocketIO(io);
-// setDebitCardSocketIO(io);
-// setMedbedsSocketIO(io);
-// setChatSocketIO(io);
-// setSupportSocketIO(io);
-// setPaymentsSocketIO(io);
-// setWithdrawalSocketIO(io);
-// setOALSocketIO(io);
-// setTokenSocketIO(io);
+// Inject Socket.IO into services/routers that need it
+// setNotificationSocket(io); // Service import commented
+setTransactionSocketIO(io);
+// setAdminUsersSocketIO(io); // Route not available
+// setDebitCardSocketIO(io); // Keep disabled if debit cards route disabled
+// setMedbedsSocketIO(io); // Keep disabled if medbeds route disabled
+// setChatSocketIO(io); // Keep disabled if chat route disabled
+setSupportSocketIO(io);
+setPaymentsSocketIO(io);
+// setWithdrawalSocketIO(io); // Function may not be exported
+// setOALSocketIO(io); // Keep disabled if OAL route disabled
+setTokenSocketIO(io);
 
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import { setRateLimiterSocketIO } from "./middleware/rateLimiterRedis";
 import { closeQueue, initQueue } from "./utils/queue";
-console.log("[DIAG] About to import rateLimiterRedis...");
-console.log("[DIAG] rateLimiterRedis imported successfully");
-console.log("[DIAG] About to import queue utils...");
 console.log("[DIAG] queue utils imported successfully");
 
 setRateLimiterSocketIO(io);
@@ -508,6 +542,31 @@ async function gracefulShutdown(signal: string) {
   console.log(`\n[SHUTDOWN] ${signal} received, starting graceful shutdown...`);
 
   try {
+    // Global error handler (must be after all routes)
+    app.use(
+      (
+        err: Error,
+        req: express.Request,
+        res: express.Response,
+        next: express.NextFunction
+      ) => {
+        console.error("[ERROR] Unhandled error:", err);
+        console.error("[ERROR] Stack:", err.stack);
+
+        if (!res.headersSent) {
+          res.status(500).json({
+            success: false,
+            error:
+              process.env.NODE_ENV === "production"
+                ? "Internal server error"
+                : err.message,
+            stack:
+              process.env.NODE_ENV === "development" ? err.stack : undefined,
+          });
+        }
+      }
+    );
+
     // Close queue connection
     await closeQueue();
     console.log("[SHUTDOWN] RabbitMQ connection closed");
@@ -555,6 +614,63 @@ async function gracefulShutdown(signal: string) {
   } else {
     process.exit(0);
   }
-} // Handle shutdown signals
-process.on("SIGINT", () => gracefulShutdown("SIGINT"));
-process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+} // Track active requests to prevent shutdown during processing
+let activeRequests = 0;
+let shutdownInitiated = false;
+let sigintCount = 0; // Track consecutive SIGINT signals
+let sigintTimer: NodeJS.Timeout | null = null;
+
+app.use((req: any, res: any, next: any) => {
+  activeRequests++;
+  res.on("finish", () => {
+    activeRequests--;
+  });
+  next();
+});
+
+// Handle shutdown signals - require double Ctrl+C in development to prevent accidental shutdowns
+function handleShutdownSignal(signal: string) {
+  if (shutdownInitiated) {
+    console.log(`[SHUTDOWN] Already shutting down, ignoring ${signal}`);
+    return;
+  }
+
+  // In development, require double SIGINT (double Ctrl+C) within 3 seconds
+  if (signal === "SIGINT" && process.env.NODE_ENV !== "production") {
+    sigintCount++;
+    console.log(
+      `\n⚠️  Received SIGINT (${sigintCount}/2) - Press Ctrl+C again within 3 seconds to shutdown, or it will be ignored`
+    );
+
+    if (sigintCount === 1) {
+      // Reset counter after 3 seconds
+      if (sigintTimer) clearTimeout(sigintTimer);
+      sigintTimer = setTimeout(() => {
+        console.log("✅  Shutdown cancelled - server continues running");
+        sigintCount = 0;
+      }, 3000);
+      return;
+    }
+
+    // Second SIGINT within 3 seconds - proceed with shutdown
+    if (sigintTimer) clearTimeout(sigintTimer);
+    console.log("🛑  Double SIGINT confirmed - shutting down...");
+  }
+
+  if (activeRequests > 0) {
+    console.log(
+      `[SHUTDOWN] ${signal} received but ${activeRequests} requests active, forcing shutdown in 2s...`
+    );
+    setTimeout(() => {
+      shutdownInitiated = true;
+      gracefulShutdown(signal);
+    }, 2000);
+    return;
+  }
+
+  shutdownInitiated = true;
+  gracefulShutdown(signal);
+}
+
+process.on("SIGINT", () => handleShutdownSignal("SIGINT"));
+process.on("SIGTERM", () => handleShutdownSignal("SIGTERM"));

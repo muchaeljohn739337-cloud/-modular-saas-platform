@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface Tier {
   tier: string;
@@ -185,7 +185,13 @@ export default function GamificationPage() {
         <div className="bg-white rounded-xl shadow-lg mb-6">
           <div className="border-b border-gray-200 overflow-x-auto">
             <div className="flex min-w-max">
-              {["tier", "achievements", "leaderboard", "challenges", "referral"].map((tab) => (
+              {[
+                "tier",
+                "achievements",
+                "leaderboard",
+                "challenges",
+                "referral",
+              ].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -205,37 +211,59 @@ export default function GamificationPage() {
             {/* Tier Tab */}
             {activeTab === "tier" && tier && (
               <div className="space-y-6">
-                <div className={`bg-gradient-to-r ${getTierColor(tier.currentTier || 'BRONZE')} p-6 sm:p-8 rounded-xl text-white`}>
+                <div
+                  className={`bg-gradient-to-r ${getTierColor(
+                    tier.currentTier || "BRONZE"
+                  )} p-6 sm:p-8 rounded-xl text-white`}
+                >
                   <div className="text-center">
-                    <h2 className="text-3xl sm:text-4xl font-bold mb-2">{tier.currentTier}</h2>
-                    <p className="text-lg sm:text-xl opacity-90">Reward Multiplier: {tier.multiplier}x</p>
-                    <p className="text-sm sm:text-base opacity-75 mt-2">{tier.totalTokens?.toLocaleString() || 0} Total Tokens</p>
+                    <h2 className="text-3xl sm:text-4xl font-bold mb-2">
+                      {tier.currentTier}
+                    </h2>
+                    <p className="text-lg sm:text-xl opacity-90">
+                      Reward Multiplier: {tier.multiplier}x
+                    </p>
+                    <p className="text-sm sm:text-base opacity-75 mt-2">
+                      {tier.totalTokens?.toLocaleString() || 0} Total Tokens
+                    </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div className="bg-white border-2 border-gray-200 rounded-xl p-4 sm:p-6">
-                    <h3 className="font-semibold text-lg mb-4">Current Benefits</h3>
+                    <h3 className="font-semibold text-lg mb-4">
+                      Current Benefits
+                    </h3>
                     <ul className="space-y-2">
                       {tier.benefits?.map((benefit: string, i: number) => (
-                        <li key={i} className="flex items-center text-sm sm:text-base">
+                        <li
+                          key={i}
+                          className="flex items-center text-sm sm:text-base"
+                        >
                           <span className="text-green-500 mr-2">✓</span>
                           {benefit}
                         </li>
-                      )) || <li className="text-gray-500">No benefits listed</li>}
+                      )) || (
+                        <li className="text-gray-500">No benefits listed</li>
+                      )}
                     </ul>
                   </div>
 
                   {tier.nextTier && (
                     <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 sm:p-6">
-                      <h3 className="font-semibold text-lg mb-4">Next Tier: {tier.nextTier}</h3>
+                      <h3 className="font-semibold text-lg mb-4">
+                        Next Tier: {tier.nextTier}
+                      </h3>
                       <div className="space-y-3">
                         <div>
                           <div className="flex justify-between text-sm mb-2">
                             <span>Progress</span>
                             <span className="font-semibold">
                               {(tier.tokensUntilNextTier ?? 0) > 0
-                                ? `${tier.tokensUntilNextTier?.toLocaleString() || 0} tokens to go`
+                                ? `${
+                                    tier.tokensUntilNextTier?.toLocaleString() ||
+                                    0
+                                  } tokens to go`
                                 : "Unlocked!"}
                             </span>
                           </div>
@@ -245,7 +273,10 @@ export default function GamificationPage() {
                               style={{
                                 width: `${Math.min(
                                   100,
-                                  (((tier.totalTokens ?? 0) / ((tier.totalTokens ?? 0) + (tier.tokensUntilNextTier ?? 1))) * 100)
+                                  ((tier.totalTokens ?? 0) /
+                                    ((tier.totalTokens ?? 0) +
+                                      (tier.tokensUntilNextTier ?? 1))) *
+                                    100
                                 )}%`,
                               }}
                             />
@@ -278,18 +309,30 @@ export default function GamificationPage() {
                         +{achievement.reward}
                       </span>
                     </div>
-                    <h3 className="font-bold text-base sm:text-lg mb-2">{achievement.name}</h3>
-                    <p className="text-xs sm:text-sm text-gray-600 mb-3">{achievement.description}</p>
+                    <h3 className="font-bold text-base sm:text-lg mb-2">
+                      {achievement.name}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-600 mb-3">
+                      {achievement.description}
+                    </p>
                     {!achievement.unlocked && (
                       <div className="bg-white rounded-lg p-2">
                         <div className="text-xs text-gray-600 mb-1">
-                          Progress: {achievement.progress ?? 0} / {achievement.id.split("_")[1] || 1}
+                          Progress: {achievement.progress ?? 0} /{" "}
+                          {achievement.id.split("_")[1] || 1}
                         </div>
                         <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
                           <div
                             className="bg-blue-500 h-full transition-all"
                             style={{
-                              width: `${Math.min(100, ((achievement.progress ?? 0) / (parseInt(achievement.id.split("_")[1]) || 1)) * 100)}%`,
+                              width: `${Math.min(
+                                100,
+                                ((achievement.progress ?? 0) /
+                                  (parseInt(
+                                    achievement.id.split("_")[1] || "1"
+                                  ) || 1)) *
+                                  100
+                              )}%`,
                             }}
                           />
                         </div>
@@ -314,19 +357,33 @@ export default function GamificationPage() {
                   >
                     <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
                       <div className="text-xl sm:text-2xl font-bold w-8 sm:w-10 flex-shrink-0">
-                        {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${user.rank}`}
+                        {index === 0
+                          ? "🥇"
+                          : index === 1
+                          ? "🥈"
+                          : index === 2
+                          ? "🥉"
+                          : `#${user.rank}`}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-sm sm:text-base truncate">{user.name}</div>
+                        <div className="font-semibold text-sm sm:text-base truncate">
+                          {user.name}
+                        </div>
                         <div className="text-xs sm:text-sm text-gray-600">
-                          <span className={`inline-block px-2 py-0.5 rounded text-xs ${getTierColor(user.tier)} text-white`}>
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded text-xs ${getTierColor(
+                              user.tier
+                            )} text-white`}
+                          >
                             {user.tier}
                           </span>
                         </div>
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 ml-2">
-                      <div className="font-bold text-sm sm:text-lg text-purple-600">{user.tokens?.toLocaleString() || 0}</div>
+                      <div className="font-bold text-sm sm:text-lg text-purple-600">
+                        {user.tokens?.toLocaleString() || 0}
+                      </div>
                       <div className="text-xs text-gray-500">tokens</div>
                     </div>
                   </div>
@@ -338,11 +395,18 @@ export default function GamificationPage() {
             {activeTab === "challenges" && (
               <div className="space-y-4 sm:space-y-6">
                 {challenges.map((challenge) => (
-                  <div key={challenge.id} className="bg-white border-2 border-gray-200 rounded-xl p-4 sm:p-6">
+                  <div
+                    key={challenge.id}
+                    className="bg-white border-2 border-gray-200 rounded-xl p-4 sm:p-6"
+                  >
                     <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
                       <div className="flex-1">
-                        <h3 className="text-lg sm:text-xl font-bold mb-2">{challenge.name}</h3>
-                        <p className="text-sm sm:text-base text-gray-600">{challenge.description}</p>
+                        <h3 className="text-lg sm:text-xl font-bold mb-2">
+                          {challenge.name}
+                        </h3>
+                        <p className="text-sm sm:text-base text-gray-600">
+                          {challenge.description}
+                        </p>
                       </div>
                       <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm sm:text-base whitespace-nowrap">
                         +{challenge.reward} tokens
@@ -366,11 +430,14 @@ export default function GamificationPage() {
                         />
                       </div>
                       {challenge.completed && (
-                        <p className="text-green-600 font-semibold mt-2 text-sm sm:text-base">✓ Completed!</p>
+                        <p className="text-green-600 font-semibold mt-2 text-sm sm:text-base">
+                          ✓ Completed!
+                        </p>
                       )}
                       {challenge.deadline && !challenge.completed && (
                         <p className="text-xs sm:text-sm text-gray-500 mt-2">
-                          Expires: {new Date(challenge.deadline).toLocaleDateString()}
+                          Expires:{" "}
+                          {new Date(challenge.deadline).toLocaleDateString()}
                         </p>
                       )}
                     </div>
@@ -385,9 +452,12 @@ export default function GamificationPage() {
                 {!referral ? (
                   <div className="text-center py-8 sm:py-12">
                     <div className="text-5xl sm:text-6xl mb-4">🎁</div>
-                    <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Invite Friends, Earn Rewards!</h3>
+                    <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">
+                      Invite Friends, Earn Rewards!
+                    </h3>
                     <p className="text-sm sm:text-base text-gray-600 mb-6">
-                      Earn 500 tokens for every friend who signs up using your referral link
+                      Earn 500 tokens for every friend who signs up using your
+                      referral link
                     </p>
                     <button
                       onClick={generateReferral}
@@ -400,13 +470,19 @@ export default function GamificationPage() {
                 ) : (
                   <div>
                     <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 sm:p-6 mb-6">
-                      <h3 className="font-semibold text-base sm:text-lg mb-3">Your Referral Link</h3>
+                      <h3 className="font-semibold text-base sm:text-lg mb-3">
+                        Your Referral Link
+                      </h3>
                       <div className="bg-white border-2 border-purple-300 rounded-lg p-3 sm:p-4 mb-4">
-                        <code className="text-xs sm:text-sm break-all">{referral.referralLink}</code>
+                        <code className="text-xs sm:text-sm break-all">
+                          {referral.referralLink}
+                        </code>
                       </div>
                       <button
                         onClick={() => {
-                          navigator.clipboard.writeText(referral.referralLink || "");
+                          navigator.clipboard.writeText(
+                            referral.referralLink || ""
+                          );
                           alert("Copied to clipboard!");
                         }}
                         className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-2 sm:py-3 rounded-lg hover:from-purple-600 hover:to-blue-600 transition text-sm sm:text-base"
@@ -420,13 +496,17 @@ export default function GamificationPage() {
                         <div className="text-3xl sm:text-4xl font-bold text-purple-600 mb-2">
                           {referral.referrals}
                         </div>
-                        <div className="text-sm sm:text-base text-gray-600">Total Referrals</div>
+                        <div className="text-sm sm:text-base text-gray-600">
+                          Total Referrals
+                        </div>
                       </div>
                       <div className="bg-white border-2 border-gray-200 rounded-xl p-4 sm:p-6 text-center">
                         <div className="text-3xl sm:text-4xl font-bold text-green-600 mb-2">
                           {referral.referrals * (referral.reward ?? 0)}
                         </div>
-                        <div className="text-sm sm:text-base text-gray-600">Tokens Earned</div>
+                        <div className="text-sm sm:text-base text-gray-600">
+                          Tokens Earned
+                        </div>
                       </div>
                     </div>
                   </div>

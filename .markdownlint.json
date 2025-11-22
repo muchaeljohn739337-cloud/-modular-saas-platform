@@ -1,8 +1,14 @@
 {
+  "extends": "markdownlint/style/prettier",
+  "default": true,
   "MD013": false,
   "MD033": false,
-  "MD034": true,
-  "MD040": true,
-  "MD022": true,
-  "MD032": true
+  "MD041": false,
+  "list-marker-space": {
+    "ul_multi": 3,
+    "ul_single": 3
+  },
+  "ul-indent": {
+    "indent": 4
+  }
 }

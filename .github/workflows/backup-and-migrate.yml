@@ -1,99 +1,121 @@
-name: Backup and Run Migrations
+name: Backup Database to Cloudflare R2
 
 on:
   workflow_dispatch:
   schedule:
-    # run nightly at 03:00 UTC; change as desired
-    - cron: '0 3 * * *'
+    - cron: "17 2 * * *" # daily at 02:17 UTC
 
 jobs:
-  backup-and-migrate:
+  backup:
     runs-on: ubuntu-latest
-    environment: production
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }} # optional override
+      HEALTH_URL: ${{ secrets.HEALTH_URL }} # optional post-backup API health check
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install pg client
+      - name: Validate configuration
+        run: |
+          set -euo pipefail
+          if [ -z "${DATABASE_URL:-}" ]; then
+            echo "DATABASE_URL GitHub Secret is required." >&2
+            exit 1
+          fi
+
+      - name: Install PostgreSQL client
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
-      - name: Create DB backup
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - name: Generate timestamp
+        id: ts
+        run: echo "ts=$(date -u +'%Y%m%dT%H%M%SZ')" >> $GITHUB_OUTPUT
+
+      - name: Dump database
         run: |
-          if [ -z "${DATABASE_URL:-}" ]; then
-            echo "DATABASE_URL secret is required to create a backup. Aborting."
+          set -euo pipefail
+          FILE="db-backup-${{ steps.ts.outputs.ts }}.dump"
+          # Use pg_dump with connection string
+          pg_dump --format=custom --no-owner --no-privileges "$DATABASE_URL" > "$FILE"
+          echo "file=$FILE" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS credentials for R2
+        if: env.R2_ACCESS_KEY_ID != '' && env.R2_SECRET_ACCESS_KEY != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.R2_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.R2_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Upload to Cloudflare R2
+        if: env.R2_ACCESS_KEY_ID != '' && env.R2_SECRET_ACCESS_KEY != '' && env.R2_BUCKET != ''
+        env:
+          FILE: db-backup-${{ steps.ts.outputs.ts }}.dump
+        run: |
+          set -euo pipefail
+          ENDPOINT=${R2_ENDPOINT}
+          if [ -z "$ENDPOINT" ] && [ -n "$R2_ACCOUNT_ID" ]; then
+            ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          fi
+          if [ -z "$ENDPOINT" ]; then
+            echo "R2 endpoint not provided. Set secret R2_ENDPOINT or R2_ACCOUNT_ID." >&2
             exit 1
           fi
-          echo "Creating pg_dump backup..."
-          pg_dump "$DATABASE_URL" -F c -b -v -f backup.dump
+          KEY_PATH="backups/backend/${FILE}"
+          echo "Uploading ${FILE} to s3://${R2_BUCKET}/${KEY_PATH} via ${ENDPOINT}"
+          aws s3 cp "$FILE" "s3://${R2_BUCKET}/${KEY_PATH}" --endpoint-url "$ENDPOINT"
 
-      - name: Upload backup artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: db-backup
-          path: backup.dump
-
-      - name: Optionally upload backup to S3
-        if: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.S3_BACKUPS_BUCKET != '' }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          S3_BACKUPS_BUCKET: ${{ secrets.S3_BACKUPS_BUCKET }}
+      - name: Verify object exists (HEAD)
+        if: success()
         run: |
-          pip install --user awscli
-          export PATH="$HOME/.local/bin:$PATH"
-          date=$(date -u +%Y-%m-%d_%H-%M-%SZ)
-          key="backups/backend/db-backup-$date.dump"
-          aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
-          aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
-          aws configure set default.region ${AWS_REGION:-us-east-1}
-          aws s3 cp backup.dump s3://$S3_BACKUPS_BUCKET/$key --acl private
-          echo "Uploaded backup to s3://$S3_BACKUPS_BUCKET/$key"
-          echo "Backup completed successfully"
+          set -euo pipefail
+          ENDPOINT=${R2_ENDPOINT}
+          if [ -z "$ENDPOINT" ] && [ -n "$R2_ACCOUNT_ID" ]; then
+            ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          fi
+          KEY_PATH="backups/backend/db-backup-${{ steps.ts.outputs.ts }}.dump"
+          aws s3 ls "s3://${R2_BUCKET}/${KEY_PATH}" --endpoint-url "$ENDPOINT"
 
-      - name: Health check
+      - name: Health check (optional)
+        if: env.HEALTH_URL != ''
         run: |
-          # Adjust the URL to your production health endpoint
-          HEALTH_URL="https://api.advanciapayledger.com/health"
+          set -euo pipefail
           echo "Checking health: $HEALTH_URL"
           for i in $(seq 1 12); do
-            if curl -fsS "$HEALTH_URL"; then
+            if curl -fsS "$HEALTH_URL" >/dev/null; then
               echo "Health check OK"
               exit 0
             fi
-            echo "Health check failed, retrying..."
+            echo "Health check failed, retrying in 5s... ($i/12)"
             sleep 5
           done
-          echo "Health check failed after migration." >&2
-          exit 4
+          echo "Health check failed after retries." >&2
+          exit 2
 
-  notify:
-    runs-on: ubuntu-latest
-    needs: backup-and-migrate
-    if: always()
-    steps:
-      - name: Determine status
-        id: determine
-        run: |
-          echo "result=${{ needs.backup-and-migrate.result }}" >> $GITHUB_OUTPUT
-
-      - name: Post Slack notification
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+      - name: Notify Slack on success
+        if: success() && secrets.SLACK_WEBHOOK_URL != ''
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          RESULT: ${{ needs.backup-and-migrate.result }}
           GITHUB_REPO: ${{ github.repository }}
           GITHUB_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          STATUS=${RESULT}
-          if [ "$STATUS" = "success" ]; then
-            TEXT="Backup SUCCEEDED for $GITHUB_REPO. Run: $GITHUB_RUN_URL"
-          else
-            TEXT="Backup FAILED for $GITHUB_REPO. Run: $GITHUB_RUN_URL"
-          fi
-          PAYLOAD=$(jq -nc --arg t "$TEXT" '{text:$t}')
-          curl -s -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_URL" || true
+          set -euo pipefail
+          TEXT="✅ DB backup SUCCEEDED for ${GITHUB_REPO}. Run: ${GITHUB_RUN_URL}"
+          curl -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"${TEXT//\"/\\\"}\"}" "$SLACK_WEBHOOK_URL" || true
+
+      - name: Notify Slack on failure
+        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          TEXT="❌ DB backup FAILED for ${GITHUB_REPO}. Run: ${GITHUB_RUN_URL}"
+          curl -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"${TEXT//\"/\\\"}\"}" "$SLACK_WEBHOOK_URL" || true

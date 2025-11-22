@@ -4,7 +4,7 @@
 
 ## Backend Service: srv-d4f29vadbo4c738b4dsg
 
-Go to: https://dashboard.render.com/web/srv-d4f29vadbo4c738b4dsg/env-vars
+Go to: [Render Dashboard - Backend Service](https://dashboard.render.com/web/srv-d4f29vadbo4c738b4dsg/env-vars)
 
 Add these environment variables:
 
@@ -84,7 +84,7 @@ SENTRY_DSN=your_sentry_dsn_here
 
 ### 1. Add Secrets to Render Dashboard
 
-1. Go to: https://dashboard.render.com/web/srv-d4f29vadbo4c738b4dsg
+1. Go to: [Render Dashboard - Backend Service](https://dashboard.render.com/web/srv-d4f29vadbo4c738b4dsg)
 2. Click **Environment** tab
 3. Add each secret above
 4. Click **Save Changes**
@@ -99,7 +99,7 @@ git push origin preview-clean
 
 ### 3. Monitor Deployment
 
-Watch logs: https://dashboard.render.com/web/srv-d4f29vadbo4c738b4dsg/logs
+Watch logs: [Render Dashboard - Logs](https://dashboard.render.com/web/srv-d4f29vadbo4c738b4dsg/logs)
 
 ### 4. Get Backend URL
 

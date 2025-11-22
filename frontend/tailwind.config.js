@@ -65,5 +65,31 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [require("daisyui")],
+  daisyui: {
+    themes: [
+      {
+        advancia: {
+          primary: "#1890ff",
+          secondary: "#13c2c2",
+          accent: "#40a9ff",
+          neutral: "#1e293b",
+          "base-100": "#ffffff",
+          "base-200": "#f8fafc",
+          "base-300": "#e2e8f0",
+          info: "#0ea5e9",
+          success: "#10b981",
+          warning: "#f59e0b",
+          error: "#ef4444",
+        },
+      },
+      "dark",
+      "light",
+    ],
+    darkTheme: "dark",
+    base: true,
+    styled: true,
+    utils: true,
+    logs: false,
+  },
 };

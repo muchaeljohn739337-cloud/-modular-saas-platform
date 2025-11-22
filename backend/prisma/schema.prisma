@@ -8,18 +8,23 @@ datasource db {
 }
 
 model CryptoPayments {
-  id          String    @id
-  user_id     String
-  invoice_id  String
-  amount      Float
-  currency    String
-  status      String    @default("pending")
-  payment_url String?
-  order_id    String?
-  description String?
-  paid_at     DateTime?
-  created_at  DateTime?
-  updated_at  DateTime?
+  id               String    @id
+  user_id          String
+  invoice_id       String
+  amount           Float
+  currency         String
+  status           String    @default("pending")
+  payment_url      String?
+  order_id         String?
+  description      String?
+  paid_at          DateTime?
+  created_at       DateTime?
+  updated_at       DateTime?
+  paymentProvider  String?   @default("cryptomus") // 'cryptomus' | 'nowpayments'
+
+  @@index([user_id])
+  @@index([status])
+  @@index([paymentProvider])
 }
 
 model RPAExecution {
@@ -404,6 +409,7 @@ model crypto_withdrawals {
   currency           String
   destinationAddress String
   requestedAt        DateTime  @default(now())
+  paymentProvider    String?   @default("cryptomus") // 'cryptomus' | 'nowpayments'
   user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
@@ -412,6 +418,9 @@ model crypto_withdrawals {
   @@index([requestedAt])
   @@index([status])
   @@index([userId])
+  @@index([paymentProvider])
+  @@index([userId, status])
+  @@index([status, requestedAt(sort: Desc)])
 }
 
 model debit_cards {
@@ -1067,6 +1076,8 @@ model transactions {
   @@index([orderId])
   @@index([provider])
   @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, type])
 }
 
 model trustpilot_reviews {
@@ -1197,6 +1208,7 @@ model User {
   signupMethod              String                      @default("password")
   stripeCustomerId          String?                     @unique
   gpt5Enabled               Boolean                     @default(false)
+  whitelistedIPs            String[]
   RPAWorkflow               RPAWorkflow[]
   admin_wallet_transactions admin_wallet_transactions[]
   crypto_wallets            crypto_wallets[]
@@ -1207,8 +1219,29 @@ model User {
   trustpilot_reviews        trustpilot_reviews[]
   two_factor_auth           two_factor_auth?
   user_profiles             user_profiles?
+  whitelisted_addresses     WhitelistedAddress[]
 
+  @@index([email])
+  @@index([role])
+  @@index([active])
+  @@index([emailVerified])
   @@map("users")
+}
+
+model WhitelistedAddress {
+  id        String   @id @default(cuid())
+  userId    String
+  address   String
+  currency  String
+  label     String?
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, address, currency])
+  @@index([userId])
+  @@index([verified])
+  @@map("whitelisted_addresses")
 }
 
 model withdrawal_queue {

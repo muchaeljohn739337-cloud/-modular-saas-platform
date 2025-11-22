@@ -87,7 +87,7 @@ export default function CryptoRecovery() {
   ];
 
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(
-    wallets[0]
+    wallets[0] || null
   );
   const [showReceiveModal, setShowReceiveModal] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");

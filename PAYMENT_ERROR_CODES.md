@@ -69,3 +69,12 @@ Webhook (`paymentsWebhook.ts`) emits `payment-status` with fields: `paymentInten
 - Maintain changes via git history; no separate versioning needed. Consider adding a "Last Updated" line if change frequency grows.
 
 _Last Updated: 2025-11-20_
+
+## Common Error Patterns
+
+### Payment Declined
+
+- **Code:** `CARD_ERROR`
+- **HTTP Status:** `400`
+- **Meaning:** The card was declined, has insufficient funds, or another issue preventing the charge.
+- **Client Handling:** Display a user-friendly error message indicating the card issue. Suggest the user check their card details, ensure sufficient funds, or try a different payment method.

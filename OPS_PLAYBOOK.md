@@ -168,22 +168,25 @@ sudo systemctl status certbot.timer
 ### 6. Configure Cloudflare Security
 
 1. **DNS Setup**:
+
    - Point domain to Cloudflare nameservers
    - Add A record: `@` → your Droplet IP
    - Add CNAME: `www` → `@`
 
 2. **SSL Configuration**:
+
    - Set SSL mode to "Full (Strict)"
    - Enable "Always Use HTTPS"
 
 3. **WAF & Security**:
+
    - Enable Cloudflare WAF with OWASP ruleset
    - Add custom rules for SQLi/XSS protection
    - Enable Bot Fight Mode
 
 4. **Rate Limiting**:
 
-   ```
+   ```text
    Rate limit: 10 requests per minute
    URL pattern: *login* or *register*
    Action: Block with 429 status
@@ -619,7 +622,7 @@ echo "Running job systematically..."
 ### Emergency Contacts
 
 - **Infrastructure Issues**: DigitalOcean support
-- **Security Incidents**: security@Advancia.com
+- **Security Incidents**: [security@Advancia.com](mailto:security@Advancia.com)
 - **Application Bugs**: GitHub Issues
 - **Performance Issues**: Datadog alerts
 
