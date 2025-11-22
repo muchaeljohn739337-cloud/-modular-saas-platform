@@ -424,9 +424,9 @@ Sentry already integrated in `backend/src/`:
 
 **Setup steps:**
 
-1. Create Sentry account (free): https://sentry.io/signup/
+1. Create Sentry account (free): <https://sentry.io/signup/>
 2. Create Node.js project
-3. Copy DSN to `.env`: `SENTRY_DSN=https://xxx@sentry.io/xxx`
+3. Copy DSN to `.env`: `SENTRY_DSN=<https://xxx@sentry.io/xxx`>
 4. Connect Slack workspace
 5. Create alert rules
 

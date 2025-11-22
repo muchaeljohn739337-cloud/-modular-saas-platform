@@ -13,8 +13,8 @@
 Verify all features work correctly from an end-user perspective before production deployment.
 
 ### Test Environment
-- **Frontend**: http://localhost:3000
-- **Backend**: http://localhost:4000
+- **Frontend**: <http://localhost:3000>
+- **Backend**: <http://localhost:4000>
 - **Database**: PostgreSQL (Development)
 - **Test Data**: Seeded users and transactions
 
