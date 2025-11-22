@@ -266,21 +266,21 @@ curl https://advancia-backend.onrender.com/api/health
 
 After fixes, your Vercel project should have:
 
-| Variable                           | Value                                       | Status         |
-| ---------------------------------- | ------------------------------------------- | -------------- |
+| Variable                           | Value                                   | Status         |
+| ---------------------------------- | --------------------------------------- | -------------- |
 | NEXT_PUBLIC_API_URL                | `https://advancia-backend.onrender.com` | ✅ Fixed       |
-| NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY | pk_test_51SC...                             | ➕ Added       |
-| NEXT_PUBLIC_VAPID_KEY              | BLO1Omk...                                  | ➕ Added       |
-| NEXT_PUBLIC_ADMIN_KEY              | supersecure...                              | ➕ Added       |
-| NEXT_PUBLIC_BOTPRESS_BOT_ID        | 77ea23f8...                                 | ➕ Added       |
-| NEXT_PUBLIC_APP_NAME               | Advancia PayLedger                          | ➕ Added       |
-| NEXT_PUBLIC_CURRENCY_LIST          | USD,EUR,BTC...                              | ➕ Added       |
-| NEXT_PUBLIC_FEATURE_FLAGS          | notifications...                            | ➕ Added       |
-| NEXTAUTH_URL                       | https://advanciapayledger.com               | ✅ Already set |
-| NEXTAUTH_SECRET                    | G25OYIKT...                                 | ✅ Already set |
-| GMAIL_EMAIL                        | advanciapayledger@gmail.com                 | ✅ Already set |
-| GMAIL_APP_PASSWORD                 | qmbkdljx...                                 | ✅ Already set |
-| RESEND_API_KEY                     | re_placeholder                              | ✅ Already set |
+| NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY | pk_test_51SC...                         | ➕ Added       |
+| NEXT_PUBLIC_VAPID_KEY              | BLO1Omk...                              | ➕ Added       |
+| NEXT_PUBLIC_ADMIN_KEY              | supersecure...                          | ➕ Added       |
+| NEXT_PUBLIC_BOTPRESS_BOT_ID        | 77ea23f8...                             | ➕ Added       |
+| NEXT_PUBLIC_APP_NAME               | Advancia PayLedger                      | ➕ Added       |
+| NEXT_PUBLIC_CURRENCY_LIST          | USD,EUR,BTC...                          | ➕ Added       |
+| NEXT_PUBLIC_FEATURE_FLAGS          | notifications...                        | ➕ Added       |
+| NEXTAUTH_URL                       | https://advanciapayledger.com           | ✅ Already set |
+| NEXTAUTH_SECRET                    | G25OYIKT...                             | ✅ Already set |
+| GMAIL_EMAIL                        | advanciapayledger@gmail.com             | ✅ Already set |
+| GMAIL_APP_PASSWORD                 | qmbkdljx...                             | ✅ Already set |
+| RESEND_API_KEY                     | re_placeholder                          | ✅ Already set |
 
 ---
 

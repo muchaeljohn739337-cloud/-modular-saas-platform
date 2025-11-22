@@ -10,7 +10,7 @@
 
 ### 1. **Git Repository** ✅
 
-```
+```text
 Current Branch: preview-clean
 Last Commit: b80b25c - fix: use local Prisma version in build command
 Remote: git@github.com:muchaeljohn739337-cloud/-modular-saas-platform.git
@@ -19,7 +19,7 @@ SSH Authentication: ✅ Working
 
 ### 2. **Build System** ✅
 
-```
+```text
 Backend Build: ✅ SUCCESS
 Output: backend/dist/ (322 files generated)
 Build Script: node build.js (custom TypeScript compiler)
@@ -29,7 +29,7 @@ TypeScript Errors: ~195 (non-blocking, noEmitOnError: false)
 
 ### 3. **Prisma ORM** ✅
 
-```
+```text
 Schema Validation: ✅ Valid
 Client Generation: ✅ Generated (v5.22.0)
 Location: node_modules/.prisma/client
@@ -38,7 +38,7 @@ Migration Command: npm exec prisma migrate deploy
 
 ### 4. **Required Files** ✅
 
-```
+```text
 ✅ backend/package.json
 ✅ backend/prisma/schema.prisma
 ✅ backend/dist/index.js (24 KB)
@@ -89,7 +89,7 @@ Database: Already configured (Oregon PostgreSQL)
 
 ### 1. **Uncommitted Changes** ⚠️
 
-```
+```text
 Modified:
  M RENDER_MIGRATION_CHECKLIST.md (markdown linting fixes)
  M backend/tsconfig.json (forceConsistentCasingInFileNames: true)
@@ -107,7 +107,7 @@ Untracked:
 
 ### 2. **Render Backend Status** ❌
 
-```
+```text
 URL: https://advancia-backend.onrender.com
 Status: Timeout (5 seconds)
 Health Check: /api/health not responding
@@ -118,7 +118,7 @@ Error: Backend not deployed or deployment failed
 
 ### 3. **Vercel Frontend Status** ❌
 
-```
+```text
 URL: https://advanciapayledger.com
 Status: 404 Not Found
 Issue: Backend API not accessible
@@ -216,7 +216,7 @@ Follow guide: `FIX_VERCEL_FRONTEND.md`
 
 ### **If Render logs show: "Cannot find module"**
 
-```
+```text
 Issue: Missing dependency or wrong start command
 Fix: Verify package.json has correct "start" script
 Check: Build command includes "npm run build"
@@ -224,7 +224,7 @@ Check: Build command includes "npm run build"
 
 ### **If Render logs show: "P1001: Can't reach database"**
 
-```
+```text
 Issue: DATABASE_URL incorrect or database not accessible
 Fix: Use internal database URL (not external)
 Check: render.yaml has correct DATABASE_URL
@@ -232,21 +232,21 @@ Check: render.yaml has correct DATABASE_URL
 
 ### **If Render logs show: "Port 4000 already in use"**
 
-```
+```text
 Issue: Previous deployment didn't stop cleanly
 Fix: Render Dashboard → Manual Deploy → Force redeploy
 ```
 
 ### **If Render logs show: "Prisma Client not generated"**
 
-```
+```text
 Issue: Build command missing "npm exec prisma generate"
 Fix: Already fixed in render.yaml (commit b80b25c)
 ```
 
 ### **If health check returns 500 Internal Server Error**
 
-```
+```text
 Issue: Missing environment secrets (JWT_SECRET, etc.)
 Fix: Set all required secrets in Render Dashboard
 Wait: 2-3 minutes for auto-redeploy
