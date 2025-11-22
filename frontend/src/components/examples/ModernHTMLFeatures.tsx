@@ -513,15 +513,15 @@ export default function ModernHTMLFeatures() {
               <input
                 id="amountSlider"
                 type="range"
-                min="0"
-                max="10000"
+                min={0}
+                max={10000}
                 value={rangeValue}
                 onChange={(e) => setRangeValue(Number(e.target.value))}
                 className="range range-primary"
                 aria-label="Slider to select transaction amount"
-                aria-valuemin="0"
-                aria-valuemax="10000"
-                aria-valuenow={String(rangeValue)}
+                aria-valuemin={0}
+                aria-valuemax={10000}
+                aria-valuenow={rangeValue}
               />
               <div className="w-full flex justify-between text-xs px-2 mt-2">
                 <span>$0</span>
@@ -637,9 +637,9 @@ export default function ModernHTMLFeatures() {
             <div>
               <h3 className="font-semibold mb-2">2. Lazy Loading:</h3>
               <pre className="bg-base-300 p-3 rounded-lg overflow-x-auto text-sm">
-                {`<img 
-  src="bigimage.jpg" 
-  loading="lazy" 
+                {`<img
+  src="bigimage.jpg"
+  loading="lazy"
   alt="Description"
 />`}
               </pre>

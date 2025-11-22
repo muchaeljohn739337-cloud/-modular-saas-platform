@@ -345,3 +345,4 @@ backup-unused/
 detect-unused.js
 cleanup.log
 unused-files.log
+RENDER_SECRETS_NEW.md
