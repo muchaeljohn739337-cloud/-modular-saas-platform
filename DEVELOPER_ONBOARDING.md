@@ -208,6 +208,23 @@ SELECT email, role FROM "User";
 SELECT "userId", balance, currency FROM "TokenWallet";
 ```
 
+### 🤖 Enable Copilot Chat Instructions (1 minute)
+
+To get better, repo-aware suggestions in VS Code Copilot Chat, we ship `.github/copilot-instructions.md` with auto-apply enabled.
+
+Steps:
+
+- In VS Code Settings, enable `GitHub Copilot Chat › Experimental: Prompt Files`.
+- In the Chat gear menu, check that `Instructions` shows our file as active.
+
+Optional verification:
+
+- Run `Developer: Set Log Level...` → Trace.
+- Run `Developer: Show Logs...` → Window, then confirm log lines like `[InstructionsContextComputer] ... Copilot instructions files added` appear.
+
+Note: If you don’t see the Prompt Files setting, your org may restrict it.
+
+
 **Expected data:**
 
 - ✅ 3 Users (admin, user, agent)
@@ -282,7 +299,7 @@ make docker-down
 
 ### 🏗️ 9. Project Structure
 
-```
+```text
 -modular-saas-platform/
 ├── backend/
 │   ├── src/
@@ -393,7 +410,7 @@ docker-compose -f docker-compose.test.yml down
 
 ---
 
-### ✅ Onboarding Complete!
+### ✅ Onboarding Complete
 
 You're now ready to:
 
@@ -403,7 +420,7 @@ You're now ready to:
 - ✅ Use Make shortcuts for common tasks
 - ✅ Contribute to the codebase
 
-**Welcome to the team! 🎉**
+#### Welcome to the team 🎉
 
 ---
 
