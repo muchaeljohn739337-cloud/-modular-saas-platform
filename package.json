@@ -28,7 +28,8 @@
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces",
     "type-check": "npm run type-check --workspaces",
-    "start": "cd frontend && npm start"
+    "start": "cd frontend && npm start",
+    "prepare": "husky install"
   },
   "engines": {
     "node": ">=18.0.0",
@@ -68,10 +69,16 @@
     ]
   },
   "devDependencies": {
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "markdownlint-cli2": "^0.14.0",
     "sharp": "^0.34.5"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
     "redis": "^5.9.0"
+  },
+  "lint-staged": {
+    "*.md": "markdownlint-cli2"
   }
 }
