@@ -336,3 +336,9 @@ package-lock.json
 *.p12
 
 security-audit-report-*.json
+
+# Cleanup/unused detection artifacts
+backup-unused/
+detect-unused.js
+cleanup.log
+unused-files.log
