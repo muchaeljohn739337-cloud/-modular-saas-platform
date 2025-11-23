@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // Connection URL moved to prisma.config.ts (Prisma 7)
 }
 
 model CryptoPayments {
@@ -1328,4 +1328,20 @@ enum Role {
   STAFF
   ADMIN
   SUPERADMIN
+}
+
+model FailedJob {
+  id          String   @id @default(uuid())
+  jobId       String
+  type        String
+  priority    Int
+  data        String   // JSON string
+  error       String
+  stackTrace  String?
+  attempts    Int
+  failedAt    DateTime @default(now())
+
+  @@index([type])
+  @@index([priority])
+  @@index([failedAt])
 }

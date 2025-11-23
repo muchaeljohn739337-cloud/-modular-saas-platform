@@ -1,3 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Advancia Pay Ledger: tmux dev session starter
+# Creates a tmux session with two horizontal panes:
+#   Left  (pane 0): backend (Express + Prisma)
+#   Right (pane 1): frontend (Next.js)
+# Reattaches if the session already exists.
+
+SESSION="advancia-dev"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BACKEND_DIR="$ROOT_DIR/backend"
+FRONTEND_DIR="$ROOT_DIR/frontend"
+
+if tmux has-session -t "$SESSION" 2>/dev/null; then
+  echo "[tmux] Session '$SESSION' already exists. Attaching..."
+  exec tmux attach -t "$SESSION"
+fi
+
+echo "[tmux] Creating session '$SESSION'"
+
+# Start new session running backend
+tmux new-session -d -s "$SESSION" -c "$BACKEND_DIR" 'printf "[backend] installing...\n"; npm install --no-audit --no-fund && npm run dev'
+
+# Split horizontally for frontend
+tmux split-window -h -c "$FRONTEND_DIR" 'printf "[frontend] installing...\n"; npm install --no-audit --no-fund && npm run dev'
+
+# Optional: focus backend pane
+tmux select-pane -t 0
+
+# Keep panes open if a process exits
+tmux set-option -t "$SESSION" remain-on-exit on
+
+echo "[tmux] Attaching. Use Ctrl-b % / " for more splits, Ctrl-b d to detach."
+tmux attach -t "$SESSION"
 #!/bin/bash
 #
 # Advancia Pay Ledger - tmux Split Pane Setup

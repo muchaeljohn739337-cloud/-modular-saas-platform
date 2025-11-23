@@ -3,11 +3,10 @@
  * Monitors user activity for suspicious patterns and blocks high-risk transactions
  */
 
-import { PrismaClient } from "@prisma/client";
 import axios from "axios";
+import { randomUUID } from "crypto";
 import { NextFunction, Response } from "express";
-
-const prisma = new PrismaClient();
+import prisma from "../prismaClient";
 
 // Configuration
 const MAX_WITHDRAWALS_PER_DAY = parseInt(
@@ -42,6 +41,7 @@ export async function createFraudAlert(params: {
 }) {
   const alert = await prisma.fraud_alerts.create({
     data: {
+      id: randomUUID(),
       userId: params.userId,
       alertType: params.alertType,
       severity: params.severity,
@@ -159,6 +159,7 @@ export async function checkIPReputation(
         ipRep = await prisma.ip_reputations.upsert({
           where: { ipAddress },
           create: {
+            id: randomUUID(),
             ipAddress,
             isVPN,
             isProxy,
@@ -168,6 +169,7 @@ export async function checkIPReputation(
             city: data.city,
             isp: data.org,
             lastChecked: new Date(),
+            updatedAt: new Date(),
             checkCount: 1,
           },
           update: {
@@ -179,6 +181,7 @@ export async function checkIPReputation(
             city: data.city,
             isp: data.org,
             lastChecked: new Date(),
+            updatedAt: new Date(),
             checkCount: { increment: 1 },
           },
         });
@@ -503,11 +506,13 @@ export async function updateIPReputation(
   const ipRep = await prisma.ip_reputations.upsert({
     where: { ipAddress },
     create: {
+      id: randomUUID(),
       ipAddress,
       blacklisted: action === "blacklist",
       whitelisted: action === "whitelist",
       riskScore: action === "blacklist" ? 100 : 0,
       lastChecked: new Date(),
+      updatedAt: new Date(),
     },
     update: {
       blacklisted: action === "blacklist",
@@ -515,6 +520,7 @@ export async function updateIPReputation(
       riskScore:
         action === "blacklist" ? 100 : action === "whitelist" ? 0 : undefined,
       lastChecked: new Date(),
+      updatedAt: new Date(),
     },
   });
 

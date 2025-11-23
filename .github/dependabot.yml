@@ -8,8 +8,6 @@ updates:
       day: "monday"
       time: "08:00"
     open-pull-requests-limit: 5
-    reviewers:
-      - "muchaeljohn739337-cloud"
     labels:
       - "dependencies"
       - "backend"
@@ -39,8 +37,6 @@ updates:
       day: "monday"
       time: "08:00"
     open-pull-requests-limit: 5
-    reviewers:
-      - "muchaeljohn739337-cloud"
     labels:
       - "dependencies"
       - "frontend"
@@ -59,8 +55,6 @@ updates:
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 3
-    reviewers:
-      - "muchaeljohn739337-cloud"
     labels:
       - "dependencies"
       - "ci"

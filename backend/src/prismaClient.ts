@@ -1,4 +1,6 @@
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
+import { Pool } from "pg";
 
 declare global {
   // Allow global prisma in development to prevent hot-reload multiple clients
@@ -6,27 +8,25 @@ declare global {
   var __prisma: PrismaClient | undefined;
 }
 
+// Build pg pool + adapter (Prisma 7 style). Use TEST_DATABASE_URL in test mode.
+const pool = new Pool({
+  connectionString:
+    process.env.NODE_ENV === "test"
+      ? process.env.TEST_DATABASE_URL || process.env.DATABASE_URL
+      : process.env.DATABASE_URL,
+});
+const adapter = new PrismaPg(pool);
+
 const prisma =
   process.env.NODE_ENV === "test"
-    ? new PrismaClient({
-        log: ["error"], // Test mode: only log errors
-        datasources: {
-          db: {
-            url: process.env.TEST_DATABASE_URL || process.env.DATABASE_URL,
-          },
-        },
-      })
+    ? new PrismaClient({ adapter, log: ["error"] })
     : global.__prisma ??
       new PrismaClient({
+        adapter,
         log:
           process.env.NODE_ENV === "development"
             ? ["query", "error", "warn"]
             : ["error"],
-        datasources: {
-          db: {
-            url: process.env.DATABASE_URL,
-          },
-        },
       });
 
 if (process.env.NODE_ENV === "development") {

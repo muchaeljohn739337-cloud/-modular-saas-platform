@@ -14,6 +14,17 @@ const scripts = [
   },
   { name: "Security Audit", script: "security-audit.ts", critical: true },
   { name: "API Health Check", script: "verify-api.ts", critical: false },
+  { name: "Storage (R2) Check", script: "verify-storage.ts", critical: false },
+  {
+    name: "Stripe Webhook Signature",
+    script: "verify-stripe-webhook.ts",
+    critical: true,
+  },
+  {
+    name: "CORS & Security Headers",
+    script: "verify-cors-security.ts",
+    critical: false,
+  },
 ];
 
 let allPassed = true;

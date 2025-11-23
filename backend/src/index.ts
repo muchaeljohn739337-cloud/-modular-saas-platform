@@ -199,6 +199,7 @@ import trustRouter from "./routes/trust"; // Scam Adviser & trust verification
 import nowpaymentsRouter from "./routes/nowpayments"; // NOWPayments crypto provider (200+ coins)
 import pricesRouter from "./routes/prices";
 import securityRouter from "./routes/security"; // Breach monitoring & IP protection
+import storageRouter from "./routes/storage";
 import telegramRouter from "./routes/telegram";
 import telegramWebhookRouter from "./routes/telegramWebhook";
 import transactionsRouter, {
@@ -387,6 +388,7 @@ app.use("/api/prices", pricesRouter); // Multi-provider price service (CoinGecko
 // app.use("/api/trustpilot", trustpilotRouter); // Removed - using simple widget embed instead
 app.use("/api/trust", trustRouter); // Scam Adviser & trust verification
 app.use("/api/security", securityRouter); // Breach monitoring & IP protection
+app.use("/api/storage", storageRouter); // Cloudflare R2 object storage operations
 // app.use("/api/tokens", authenticateToken, tokensEnhancedRouter); // Enhanced token features
 // app.use("/api/crypto", authenticateToken, cryptoEnhancedRouter); // Crypto charts & swap (RE-ENABLED)
 // app.use("/api/cryptomus", cryptomusRouter); // Cryptomus payment processing

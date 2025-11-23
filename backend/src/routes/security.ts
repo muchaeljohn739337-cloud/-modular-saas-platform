@@ -380,4 +380,113 @@ router.delete(
   }
 );
 
+// ============================================
+// SECURITY MONITORING AND REPORTING
+// ============================================
+
+/**
+ * POST /api/security/csp-violation
+ * Handle Content Security Policy violations
+ */
+router.post("/csp-violation", async (req, res) => {
+  try {
+    const violation = req.body;
+
+    console.warn("CSP Violation:", {
+      directive: violation.directive,
+      blockedUri: violation.blockedUri,
+      sourceFile: violation.sourceFile,
+      lineNumber: violation.lineNumber,
+      timestamp: violation.timestamp,
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
+
+    // TODO: Store in database for security dashboard
+    // await prisma.securityEvent.create({ ... });
+
+    res.status(204).send();
+  } catch (error) {
+    console.error("Error processing CSP violation:", error);
+    res.status(500).json({ error: "Failed to process CSP violation" });
+  }
+});
+
+/**
+ * POST /api/security/script-violation
+ * Handle unauthorized script injection attempts
+ */
+router.post("/script-violation", async (req, res) => {
+  try {
+    const { src, timestamp } = req.body;
+
+    console.error("🚨 Unauthorized Script Detected:", {
+      src,
+      timestamp,
+      url: req.headers.referer,
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
+
+    // TODO: Alert security team for high-severity events
+
+    res.status(204).send();
+  } catch (error) {
+    console.error("Error processing script violation:", error);
+    res.status(500).json({ error: "Failed to process script violation" });
+  }
+});
+
+/**
+ * POST /api/security/report
+ * Handle general security events (clickjacking, etc.)
+ */
+router.post("/report", async (req, res) => {
+  try {
+    const { type, timestamp, url } = req.body;
+
+    console.warn("Security Event:", {
+      type,
+      timestamp,
+      url,
+      referer: req.headers.referer,
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    console.error("Error processing security report:", error);
+    res.status(500).json({ error: "Failed to process security report" });
+  }
+});
+
+/**
+ * POST /api/security/token-exposure
+ * Handle potential token leakage
+ */
+router.post("/token-exposure", authenticateToken, async (req: any, res) => {
+  try {
+    const { key, timestamp } = req.body;
+    const userId = req.user?.userId;
+
+    console.error("🚨 CRITICAL: Token Exposure Detected", {
+      userId,
+      exposedKey: key,
+      timestamp,
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
+
+    // Force re-authentication
+    res.status(401).json({
+      error: "Security issue detected. Please log in again.",
+      forceLogout: true,
+    });
+  } catch (error) {
+    console.error("Error processing token exposure:", error);
+    res.status(500).json({ error: "Failed to process token exposure" });
+  }
+});
+
 export default router;

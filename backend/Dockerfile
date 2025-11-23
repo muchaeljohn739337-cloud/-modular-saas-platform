@@ -16,7 +16,7 @@ COPY prisma ./prisma
 # Generate Prisma Client
 RUN npx prisma generate
 
-# Build TypeScript
+# Build TypeScript (produces dist/)
 RUN npm run build
 
 # Production stage
@@ -24,24 +24,28 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files & prisma config
 COPY package*.json ./
-
-# Install production dependencies only
-RUN npm install --production --legacy-peer-deps || npm ci --only=production --legacy-peer-deps
-
-# Copy Prisma schema and generate client
-COPY prisma ./prisma
-RUN npx prisma generate
-
-# Copy built application from builder
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/src ./src
+COPY prisma.config.ts ./
 
 ENV NODE_ENV=production
+# Install production dependencies only (ensure adapter + pg present)
+RUN npm install --production --legacy-peer-deps || npm ci --only=production --legacy-peer-deps
+RUN npm install @prisma/adapter-pg pg --legacy-peer-deps || true
+
+COPY prisma ./prisma
+# Generate Prisma client using prisma.config.ts (adapter-ready)
+RUN npx prisma generate
+
+COPY --from=builder /app/dist ./dist
+# Optional: retain source for stack traces
+COPY --from=builder /app/src ./src
+
 ENV PORT=4000
+# Install curl for healthcheck
+RUN apk add --no-cache curl
 
 EXPOSE 4000
 
-# Use ts-node for development compatibility
-CMD ["npx", "ts-node", "src/index.ts"]
+# Run compiled output
+CMD ["node", "dist/index.js"]
