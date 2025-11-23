@@ -29,7 +29,7 @@
     "lint": "npm run lint --workspaces",
     "type-check": "npm run type-check --workspaces",
     "start": "cd frontend && npm start",
-    "prepare": "node -e \"if (process.env.NODE_ENV !== 'production') require('husky').install()\"",
+    "prepare": "node -e \"try { if (process.env.NODE_ENV !== 'production' && require('fs').existsSync('.git')) require('husky').install() } catch (e) {}\"",
     "docs:lint": "markdownlint-cli2"
   },
   "engines": {
