@@ -27,17 +27,22 @@ body {
 }
 
 /* Ensure input text is always visible */
-input, textarea, select {
+input,
+textarea,
+select {
   color: #1f2937 !important;
   background-color: white !important;
 }
 
-input::placeholder, textarea::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: #9ca3af !important;
   opacity: 1;
 }
 
-input:focus, textarea:focus, select:focus {
+input:focus,
+textarea:focus,
+select:focus {
   color: #111827 !important;
 }
 
@@ -71,4 +76,29 @@ input:-webkit-autofill:focus {
 /* Smooth transitions */
 * {
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Advanced shake animation for form errors */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-4px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
 }

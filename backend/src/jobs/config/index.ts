@@ -88,7 +88,12 @@ function getAllowedOrigins(): string[] {
     set.add("https://advanciapayledger.com");
     set.add("https://www.advanciapayledger.com");
     // Add Vercel deployment URL
-    set.add("https://modular-saas-platform-frontend-6iwhoautb-advanciapayledger.vercel.app");
+    set.add(
+      "https://modular-saas-platform-frontend-6iwhoautb-advanciapayledger.vercel.app"
+    );
+    // Explicit app and api subdomains for production
+    set.add("https://app.advanciapayledger.com");
+    set.add("https://api.advanciapayledger.com");
   }
 
   // Add localhost variants for development
@@ -117,6 +122,7 @@ function getAllowedOrigins(): string[] {
 export const config = {
   port: parseInt(process.env.PORT || "4000", 10),
   frontendUrl: process.env.FRONTEND_URL || "http://localhost:3000",
+  backendUrl: process.env.BACKEND_URL || "http://localhost:4000",
   allowedOrigins: getAllowedOrigins(),
   databaseUrl: process.env.DATABASE_URL,
   redisUrl: process.env.REDIS_URL,
@@ -126,11 +132,21 @@ export const config = {
   nodeEnv: process.env.NODE_ENV || "development",
   stripeSecretKey: process.env.STRIPE_SECRET_KEY,
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+  cryptomusApiKey: process.env.CRYPTOMUS_API_KEY,
+  cryptomusMerchantId: process.env.CRYPTOMUS_MERCHANT_ID,
 };
 
 // Validate required configuration
+// Allow skipping DB validation in non-production when explicitly requested
 if (!config.databaseUrl) {
-  throw new Error("DATABASE_URL is required in environment variables");
+  const skip = process.env.SKIP_DATABASE_VALIDATION === "1";
+  if (skip && config.nodeEnv !== "production") {
+    console.warn(
+      "⚠️  DATABASE_URL missing but SKIP_DATABASE_VALIDATION=1 set. Continuing without DB."
+    );
+  } else {
+    throw new Error("DATABASE_URL is required in environment variables");
+  }
 }
 
 console.log("🔧 Configuration loaded successfully");
@@ -143,4 +159,3 @@ if (!config.stripeSecretKey) {
     "⚠️  STRIPE_SECRET_KEY not set. Payment endpoints will be disabled."
   );
 }
-

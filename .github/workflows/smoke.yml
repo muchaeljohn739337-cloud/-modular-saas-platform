@@ -1,0 +1,55 @@
+name: Smoke Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      baseUrl:
+        description: Base URL of backend (e.g., https://advancia-backend.onrender.com)
+        required: true
+        default: https://advancia-backend.onrender.com
+      healthPath:
+        description: Health endpoint path
+        required: false
+        default: /api/health
+  workflow_run:
+    workflows: ["Deploy Backend (Render)"]
+    types: ["completed"]
+
+jobs:
+  health:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve URL
+        id: vars
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "base=${{ github.event.inputs.baseUrl }}" >> $GITHUB_OUTPUT
+            echo "health=${{ github.event.inputs.healthPath }}" >> $GITHUB_OUTPUT
+          else
+            echo "base=${{ secrets.SMOKE_BASE_URL || 'https://advancia-backend.onrender.com' }}" >> $GITHUB_OUTPUT
+            echo "health=/api/health" >> $GITHUB_OUTPUT
+          fi
+      - name: Curl health
+        run: |
+          set -e
+          url="${{ steps.vars.outputs.base }}${{ steps.vars.outputs.health }}"
+          echo "Hitting $url"
+          http_code=$(curl -s -o /dev/null -w "%{http_code}" "$url")
+          echo "HTTP $http_code"
+          if [ "$http_code" != "200" ]; then
+            echo "Health check failed"
+            exit 1
+          fi
+      - name: Authenticated check (optional)
+        if: ${{ secrets.SMOKE_TEST_JWT != '' && secrets.SMOKE_TEST_AUTH_PATH != '' }}
+        run: |
+          set -e
+          url="${{ steps.vars.outputs.base }}${{ secrets.SMOKE_TEST_AUTH_PATH }}"
+          echo "Auth check $url"
+          http_code=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${{ secrets.SMOKE_TEST_JWT }}" "$url")
+          echo "HTTP $http_code"
+          if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 400 ]; then
+            echo "Auth check failed"
+            exit 1
+          fi

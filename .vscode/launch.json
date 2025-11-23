@@ -1,7 +1,6 @@
 {
   "version": "0.2.0",
   "configurations": [
-    
     {
       "name": "🔧 Backend: Debug (TS via tsx)",
       "type": "node",
@@ -18,6 +17,16 @@
       "envFile": "${workspaceFolder}/backend/.env",
       "restart": true,
       "program": "${workspaceFolder}/backend/src/index.ts"
+    },
+    {
+      "name": "▶ Run Workspace Node CLI (prompt)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--no-install", "${input:cliName}", "${input:cliArgs}"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
     },
     {
       "name": "🎨 Frontend: Next.js Debug",
@@ -221,6 +230,18 @@
     }
   ],
   "inputs": [
+    {
+      "id": "cliName",
+      "type": "promptString",
+      "description": "CLI to run (e.g., jest, eslint, prisma, next)",
+      "default": "jest"
+    },
+    {
+      "id": "cliArgs",
+      "type": "promptString",
+      "description": "Arguments for the CLI (optional)",
+      "default": ""
+    },
     {
       "id": "testFile",
       "type": "promptString",

@@ -20,7 +20,7 @@ const createEnvSchema = () => {
         isTest ? 1 : 32,
         isTest
           ? "JWT_SECRET required"
-          : "JWT_SECRET must be at least 32 characters",
+          : "JWT_SECRET must be at least 32 characters"
       )
       .optional(),
     JWT_SECRET_ENCRYPTED: z.string().optional(),
@@ -30,10 +30,7 @@ const createEnvSchema = () => {
     JWT_EXPIRATION: z.string().default("7d"),
 
     // Server
-    PORT: z
-      .string()
-      .transform((val) => parseInt(val, 10))
-      .default("4000"),
+    PORT: z.coerce.number().default(4000),
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
@@ -54,10 +51,7 @@ const createEnvSchema = () => {
 
     // Email
     SMTP_HOST: z.string().optional(),
-    SMTP_PORT: z
-      .string()
-      .transform((val) => parseInt(val, 10))
-      .optional(),
+    SMTP_PORT: z.coerce.number().optional(),
     SMTP_USER: z.string().optional(),
     SMTP_PASS: z.string().optional(),
     EMAIL_FROM: z.string().email("EMAIL_FROM must be a valid email").optional(),
@@ -69,23 +63,14 @@ const createEnvSchema = () => {
         isTest ? 1 : 32,
         isTest
           ? "SESSION_SECRET required"
-          : "SESSION_SECRET must be at least 32 characters",
+          : "SESSION_SECRET must be at least 32 characters"
       )
       .optional(),
 
     // Security
-    BCRYPT_ROUNDS: z
-      .string()
-      .transform((val) => parseInt(val, 10))
-      .default("10"),
-    RATE_LIMIT_WINDOW_MS: z
-      .string()
-      .transform((val) => parseInt(val, 10))
-      .default("60000"),
-    RATE_LIMIT_MAX_REQUESTS: z
-      .string()
-      .transform((val) => parseInt(val, 10))
-      .default("300"),
+    BCRYPT_ROUNDS: z.coerce.number().default(10),
+    RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60000),
+    RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(300),
 
     // Crypto
     BTC_ADDRESS: z.string().optional(),
@@ -95,9 +80,6 @@ const createEnvSchema = () => {
 
     // External APIs
     RESEND_API_KEY: z.string().optional(),
-    TWILIO_ACCOUNT_SID: z.string().optional(),
-    TWILIO_AUTH_TOKEN: z.string().optional(),
-    TWILIO_PHONE_NUMBER: z.string().optional(),
 
     // Monitoring
     SENTRY_DSN: z.string().optional(),
@@ -117,7 +99,7 @@ export function validateEnvironment(): z.infer<typeof envSchema> {
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error("❌ Environment validation failed:");
-      error.errors.forEach((err) => {
+      error.issues.forEach((err) => {
         console.error(`   ${err.path.join(".")}: ${err.message}`);
       });
       throw new Error("Environment validation failed");
@@ -221,12 +203,12 @@ export class EnvironmentInspector {
     // Warn about missing critical services
     const criticalServices = ["database"];
     const missingCritical = criticalServices.filter(
-      (service) => !services[service as keyof typeof services],
+      (service) => !services[service as keyof typeof services]
     );
 
     if (missingCritical.length > 0) {
       console.warn(
-        `\n⚠️  Critical services missing: ${missingCritical.join(", ")}`,
+        `\n⚠️  Critical services missing: ${missingCritical.join(", ")}`
       );
     }
 

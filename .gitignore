@@ -17,7 +17,7 @@ lerna-debug.log*
 .pnpm-debug.log*
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
+# pnpm-lock.yaml - MUST be committed for CI to work with --frozen-lockfile
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Build Outputs & Distribution
@@ -93,6 +93,9 @@ watchdog-config.ps1
 CLOUDFLARE_CREDENTIALS.md
 *_CREDENTIALS.md
 cloudflare-secrets.txt
+
+# Render deployment secrets
+RENDER_DEPLOYMENT_SECRETS.md
 .dev.vars
 frontend/.dev.vars
 **/wrangler-*.toml
@@ -330,3 +333,16 @@ github-config.json
 
 # npm lockfiles (using pnpm)
 package-lock.json
+
+.vercel
+
+*.p12
+
+security-audit-report-*.json
+
+# Cleanup/unused detection artifacts
+backup-unused/
+detect-unused.js
+cleanup.log
+unused-files.log
+RENDER_SECRETS_NEW.md

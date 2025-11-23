@@ -1,0 +1,163 @@
+name: 🏷️ PR Auto-Label and Assign
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  auto-label:
+    name: Auto-label PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Label by file paths
+        uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml
+
+      - name: Label by PR size
+        uses: codelytv/pr-size-labeler@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          xs_label: "size/xs"
+          xs_max_size: "10"
+          s_label: "size/s"
+          s_max_size: "100"
+          m_label: "size/m"
+          m_max_size: "500"
+          l_label: "size/l"
+          l_max_size: "1000"
+          xl_label: "size/xl"
+
+      - name: Label by branch name
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branchName = context.payload.pull_request.head.ref;
+            const labels = [];
+
+            if (branchName.startsWith('feat/')) labels.push('enhancement');
+            if (branchName.startsWith('fix/')) labels.push('bug');
+            if (branchName.startsWith('hotfix/')) labels.push('hotfix', 'critical');
+            if (branchName.startsWith('docs/')) labels.push('documentation');
+            if (branchName.startsWith('refactor/')) labels.push('refactoring');
+            if (branchName.startsWith('test/')) labels.push('testing');
+            if (branchName.startsWith('chore/')) labels.push('maintenance');
+
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                labels: labels
+              });
+            }
+
+  auto-assign:
+    name: Auto-assign reviewers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Auto-assign based on CODEOWNERS
+        uses: hkusu/review-assign-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Assign by changed files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+
+            const reviewers = new Set();
+
+            // Backend changes
+            if (files.some(f => f.filename.startsWith('backend/'))) {
+              reviewers.add('backend-team');
+            }
+
+            // Frontend changes
+            if (files.some(f => f.filename.startsWith('frontend/'))) {
+              reviewers.add('frontend-team');
+            }
+
+            // Database changes
+            if (files.some(f => f.filename.includes('prisma/schema.prisma') || 
+                                 f.filename.includes('migrations'))) {
+              reviewers.add('database-admin');
+            }
+
+            // Security-sensitive files
+            const securityFiles = ['auth.ts', 'encryption.ts', 'middleware/auth.ts'];
+            if (files.some(f => securityFiles.some(sf => f.filename.includes(sf)))) {
+              reviewers.add('security-team');
+            }
+
+            // Convert Set to Array and request reviews
+            const reviewerArray = Array.from(reviewers);
+            if (reviewerArray.length > 0) {
+              try {
+                await github.rest.pulls.requestReviewers({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.payload.pull_request.number,
+                  team_reviewers: reviewerArray
+                });
+              } catch (error) {
+                console.log('Could not assign team reviewers:', error.message);
+              }
+            }
+
+  check-pr-title:
+    name: Validate PR title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title format
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+            hotfix
+          requireScope: false
+          subjectPattern: ^[A-Z].+$
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}"
+            must start with an uppercase character.
+
+  add-to-project:
+    name: Add to project board
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add PR to project
+        uses: actions/add-to-project@v0.5.0
+        with:
+          project-url: https://github.com/orgs/YOUR_ORG/projects/YOUR_PROJECT_NUMBER
+          github-token: ${{ secrets.GITHUB_TOKEN }}

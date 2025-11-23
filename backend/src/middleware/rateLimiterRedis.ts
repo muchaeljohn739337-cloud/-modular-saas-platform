@@ -9,11 +9,11 @@
  * - Gracefully degrades if Redis is unavailable
  */
 
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import { Redis } from "ioredis";
-import { shouldAlert } from "../config/alertPolicy.js";
-import { sendAlert } from "../services/alertService.js";
-import { captureError } from "../utils/sentry.js";
+import { shouldAlert } from "../config/alertPolicy";
+import { sendAlert } from "../services/alertServiceMinimal";
+import { captureError } from "../utils/sentry";
 
 // Initialize Redis client
 const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379", {
@@ -54,7 +54,7 @@ interface RateLimiterOptions {
 /**
  * Get identifier from request (user ID or IP)
  */
-function getIdentifier(req: Request): string {
+function getIdentifier(req: any): string {
   // Prefer authenticated user ID
   if (req.user && req.user.id) {
     return `user:${req.user.id}`;
@@ -102,7 +102,7 @@ export function rateLimiter(options: RateLimiterOptions) {
     skipSuccessfulRequests = false,
   } = options;
 
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: any, res: Response, next: NextFunction) => {
     try {
       const identifier = getIdentifier(req);
       const routeGroup = getRouteGroup(req.originalUrl);

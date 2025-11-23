@@ -11,13 +11,14 @@ import * as Sentry from "@sentry/node";
  */
 export function initSentry() {
   // Skip if no DSN provided (e.g., local development)
-  if (!process.env.SENTRY_DSN) {
+  const dsn = process.env.SENTRY_DSN;
+  if (!dsn || dsn.includes("YOUR_") || dsn.includes("_HERE")) {
     console.log("Sentry DSN not configured, error tracking disabled");
     return;
   }
 
   Sentry.init({
-    dsn: process.env.SENTRY_DSN,
+    dsn: dsn,
     environment: process.env.NODE_ENV || "development",
 
     // Performance Monitoring
@@ -74,7 +75,8 @@ function setupGlobalErrorHandlers() {
  * Express middleware to capture request context
  */
 export const sentryRequestHandler = () => {
-  if (!process.env.SENTRY_DSN) {
+  const dsn = process.env.SENTRY_DSN;
+  if (!dsn || dsn.includes("YOUR_") || dsn.includes("_HERE")) {
     return (req, res, next) => next();
   }
   return Sentry.Handlers.requestHandler();
@@ -84,7 +86,8 @@ export const sentryRequestHandler = () => {
  * Express middleware to enable tracing
  */
 export const sentryTracingHandler = () => {
-  if (!process.env.SENTRY_DSN) {
+  const dsn = process.env.SENTRY_DSN;
+  if (!dsn || dsn.includes("YOUR_") || dsn.includes("_HERE")) {
     return (req, res, next) => next();
   }
   return Sentry.Handlers.tracingHandler();
@@ -94,7 +97,8 @@ export const sentryTracingHandler = () => {
  * Express error handler middleware (must be last)
  */
 export const sentryErrorHandler = () => {
-  if (!process.env.SENTRY_DSN) {
+  const dsn = process.env.SENTRY_DSN;
+  if (!dsn || dsn.includes("YOUR_") || dsn.includes("_HERE")) {
     return (err, req, res, next) => next(err);
   }
   return Sentry.Handlers.errorHandler();

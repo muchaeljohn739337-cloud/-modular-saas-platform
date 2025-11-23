@@ -3,10 +3,22 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci --no-audit --no-fund
 
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY . .
+COPY --from=deps /app/node_modules ./node_modules
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
+
 FROM node:20-alpine AS runner
 WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-ENV PORT=3000
+COPY --from=build /app/.next ./.next
+COPY --from=build /app/public ./public
+COPY package.json package-lock.json* ./
 EXPOSE 3000
-CMD ["npm", "run", "dev"]
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+CMD ["npm", "run", "start"]

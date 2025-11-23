@@ -93,4 +93,3 @@ Write-Host "   • 'P1001: Can't reach database' → DATABASE_URL wrong" -Foregr
 Write-Host "   • 'Port 4000 already in use' → Port conflict" -ForegroundColor Gray
 Write-Host "   • 'EADDRINUSE' → Service didn't stop properly" -ForegroundColor Gray
 Write-Host ""
-postgresql://advancia_user:AxYyJPvCeXo0vA6uiQvjG2kEUgJKo20t@dpg-d3p5n1p5pdvs73ad8o1g-a.virginia-postgres.render.com/advancia_prod

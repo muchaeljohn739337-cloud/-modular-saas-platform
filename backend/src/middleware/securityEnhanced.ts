@@ -5,7 +5,7 @@
 
 import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
-import { captureError } from "../utils/sentry.js";
+import { captureError } from "../utils/sentry";
 
 /**
  * Validate request body against Zod schema
@@ -114,7 +114,7 @@ export function securityHeaders(
  * CSRF token validation middleware
  * Use with express-csrf or similar CSRF protection library
  */
-export function validateCSRF(req: Request, res: Response, next: NextFunction) {
+export function validateCSRF(req: any, res: Response, next: NextFunction) {
   // Skip CSRF for GET, HEAD, OPTIONS
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
     next();
@@ -205,7 +205,7 @@ export function ipWhitelist(allowedIPs: string[]) {
  * Session timeout validation
  */
 export function sessionTimeout(maxAgeMinutes: number = 60) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: any, res: Response, next: NextFunction) => {
     const session = (req as any).session;
     const user = (req as any).user;
 
@@ -238,7 +238,7 @@ export function sessionTimeout(maxAgeMinutes: number = 60) {
 /**
  * MFA enforcement for sensitive operations
  */
-export function requireMFA(req: Request, res: Response, next: NextFunction) {
+export function requireMFA(req: any, res: Response, next: NextFunction) {
   const user = (req as any).user;
 
   if (!user) {

@@ -1,0 +1,18 @@
+{
+  // Markdownlint CLI2 configuration
+  // Enforce no bare URLs (MD034), fenced code language (MD040), and spacing rules
+  "config": {
+    "MD013": false, // line length
+    "MD033": false, // inline HTML allowed
+    "MD034": true, // no bare URLs
+    "MD040": true, // fenced code blocks should have a language
+    "MD022": true, // blanks around headings
+    "MD032": true // blanks around lists
+  },
+  "globs": [
+    "**/*.md",
+    "!**/node_modules/**",
+    "!**/.git/**",
+    "!**/.git-rewrite/**"
+  ]
+}

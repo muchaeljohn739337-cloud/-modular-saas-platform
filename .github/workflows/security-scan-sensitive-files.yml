@@ -1,0 +1,195 @@
+name: Security - Scan Sensitive Files
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main, staging, production]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  scan-secrets:
+    name: Scan for Sensitive Files & Secrets
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for comprehensive scan
+
+      - name: Run custom sensitive files scanner
+        id: custom-scan
+        continue-on-error: true
+        run: |
+          chmod +x scripts/scan-sensitive-files.sh
+          ./scripts/scan-sensitive-files.sh --detailed || echo "issues_found=true" >> $GITHUB_OUTPUT
+
+      - name: Install Gitleaks
+        run: |
+          wget -q https://github.com/gitleaks/gitleaks/releases/download/v8.18.1/gitleaks_8.18.1_linux_x64.tar.gz
+          tar -xzf gitleaks_8.18.1_linux_x64.tar.gz
+          chmod +x gitleaks
+          sudo mv gitleaks /usr/local/bin/
+
+      - name: Run Gitleaks scan
+        id: gitleaks
+        continue-on-error: true
+        run: |
+          echo "🔍 Running Gitleaks secret scanner..."
+          gitleaks detect \
+            --source . \
+            --verbose \
+            --report-format json \
+            --report-path gitleaks-report.json \
+            --exit-code 0
+
+          if [ -f gitleaks-report.json ]; then
+            FINDINGS=$(jq length gitleaks-report.json)
+            echo "findings=$FINDINGS" >> $GITHUB_OUTPUT
+            
+            if [ "$FINDINGS" -gt 0 ]; then
+              echo "⚠️  Gitleaks found $FINDINGS potential secrets"
+              jq -r '.[] | "File: \(.File):\(.StartLine) - \(.Description)"' gitleaks-report.json
+            fi
+          fi
+
+      - name: Upload Gitleaks report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
+          retention-days: 30
+
+      - name: Check for sensitive file patterns
+        run: |
+          echo "🔍 Checking for sensitive file patterns..."
+
+          # Check for .env files
+          if git ls-files | grep -E '\.env$|\.env\.(local|production|staging)$' | grep -v '\.env\.example$'; then
+            echo "❌ ERROR: .env files found in repository!"
+            exit 1
+          fi
+
+          # Check for key files
+          if git ls-files | grep -E '\.(pem|key|p12|pfx)$'; then
+            echo "❌ ERROR: Key files found in repository!"
+            exit 1
+          fi
+
+          # Check for database dumps
+          if git ls-files | grep -E '\.(sql|dump|backup)$' | grep -v 'schema\.sql$'; then
+            echo "❌ ERROR: Database dump files found in repository!"
+            exit 1
+          fi
+
+          echo "✅ No sensitive file patterns detected"
+
+      - name: Check for hardcoded secrets in code
+        run: |
+          echo "🔍 Checking for hardcoded secrets..."
+
+          # AWS Keys
+          if git grep -E 'AKIA[0-9A-Z]{16}' -- ':!SECURITY_AUDIT*.md'; then
+            echo "❌ ERROR: AWS keys found!"
+            exit 1
+          fi
+
+          # GitHub Tokens
+          if git grep -E 'ghp_[a-zA-Z0-9]{36}|gho_[a-zA-Z0-9]{36}' -- ':!SECURITY_AUDIT*.md'; then
+            echo "❌ ERROR: GitHub tokens found!"
+            exit 1
+          fi
+
+          # Stripe Live Keys
+          if git grep -E 'sk_live_[a-zA-Z0-9]{24,}' -- ':!SECURITY_AUDIT*.md' ':!*.md'; then
+            echo "❌ ERROR: Stripe live keys found!"
+            exit 1
+          fi
+
+          # Private Keys
+          if git grep -E '-----BEGIN.*PRIVATE KEY-----' -- ':!SECURITY_AUDIT*.md'; then
+            echo "❌ ERROR: Private keys found!"
+            exit 1
+          fi
+
+          echo "✅ No hardcoded secrets detected"
+
+      - name: Verify .gitignore protection
+        run: |
+          echo "🔒 Verifying .gitignore protection..."
+
+          required_patterns=(
+            ".env"
+            ".env.local"
+            "*.pem"
+            "*.key"
+            "*.dump"
+          )
+
+          missing=0
+          for pattern in "${required_patterns[@]}"; do
+            if ! grep -qF "$pattern" .gitignore; then
+              echo "⚠️  Missing in .gitignore: $pattern"
+              missing=$((missing + 1))
+            fi
+          done
+
+          if [ $missing -gt 0 ]; then
+            echo "❌ ERROR: $missing patterns missing from .gitignore"
+            exit 1
+          fi
+
+          echo "✅ .gitignore properly configured"
+
+      - name: Generate security report
+        if: always()
+        run: |
+          echo "# 🔒 Security Scan Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Date:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.gitleaks.outputs.findings }}" != "" ] && [ "${{ steps.gitleaks.outputs.findings }}" -gt 0 ]; then
+            echo "## ⚠️ Findings" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Gitleaks found **${{ steps.gitleaks.outputs.findings }}** potential secrets" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **Action Required:** Review the Gitleaks report artifact" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ✅ No Issues Found" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "No sensitive files or secrets detected in the scan." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📚 **Resources:**" >> $GITHUB_STEP_SUMMARY
+          echo "- [Secret Management Guide](../blob/main/SECRET_MANAGEMENT_GUIDE.md)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Security Audit Report](../blob/main/SECURITY_AUDIT_2025-11-17.md)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if secrets found
+        if: steps.gitleaks.outputs.findings != '' && steps.gitleaks.outputs.findings > 0
+        run: |
+          echo "❌ Security scan failed: Secrets detected!"
+          echo ""
+          echo "Please review the findings and remove any sensitive data"
+          echo "See: SECRET_MANAGEMENT_GUIDE.md for proper secret management"
+          exit 1
+
+      - name: Success
+        if: steps.gitleaks.outputs.findings == '' || steps.gitleaks.outputs.findings == 0
+        run: |
+          echo "✅ Security scan passed!"
+          echo "No sensitive files or secrets detected"

@@ -1,0 +1,39 @@
+name: Update Copilot Instructions
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # Daily at 2am UTC
+  workflow_dispatch:
+
+jobs:
+  update-instructions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare script
+        run: |
+          chmod +x scripts/generate_copilot_instructions.sh
+
+      - name: Generate/update instructions
+        run: |
+          ./scripts/generate_copilot_instructions.sh
+
+      - name: Create PR with updates
+        uses: peter-evans/create-pull-request@v5
+        with:
+          title: "chore(docs): automated update of Copilot instructions"
+          body: |
+            This PR updates `.github/copilot-instructions.md` via a scheduled workflow.
+
+            - Refreshes Last Updated date
+            - Ensures security/compliance guidance remains present
+
+            Please review and merge.
+          commit-message: "chore(docs): automated update of Copilot instructions"
+          branch: chore/auto-update-copilot-instructions
+          base: preview-clean

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function DoctorRegisterPage() {
   const router = useRouter();
@@ -160,29 +160,36 @@ export default function DoctorRegisterPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="specialization"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Specialization *
             </label>
-            <select
+            <input
+              type="text"
+              id="specialization"
               name="specialization"
               value={formData.specialization}
               onChange={handleChange}
+              list="specialization-options"
               required
+              placeholder="Select or type specialization"
               title="Medical specialization"
               aria-label="Medical specialization"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select specialization</option>
-              <option value="General Practice">General Practice</option>
-              <option value="Cardiology">Cardiology</option>
-              <option value="Neurology">Neurology</option>
-              <option value="Orthopedics">Orthopedics</option>
-              <option value="Pediatrics">Pediatrics</option>
-              <option value="Psychiatry">Psychiatry</option>
-              <option value="Dermatology">Dermatology</option>
-              <option value="Emergency Medicine">Emergency Medicine</option>
-              <option value="Other">Other</option>
-            </select>
+            />
+            <datalist id="specialization-options">
+              <option value="General Practice" />
+              <option value="Cardiology" />
+              <option value="Neurology" />
+              <option value="Orthopedics" />
+              <option value="Pediatrics" />
+              <option value="Psychiatry" />
+              <option value="Dermatology" />
+              <option value="Emergency Medicine" />
+              <option value="Other" />
+            </datalist>
           </div>
 
           <div>

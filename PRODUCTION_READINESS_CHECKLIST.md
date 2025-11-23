@@ -11,11 +11,13 @@
 ### 1. Configuration and Secrets
 
 - [ ] **GitHub Environments created:**
+
   - [ ] `production-us-east`
   - [ ] `production-eu-west`
   - [ ] `production-apac-se`
 
 - [ ] **Secrets configured (per environment or repository-wide):**
+
   - [ ] `SLACK_WEBHOOK_URL` - For incident Quick Cards
   - [ ] `GLOBAL_SLACK_WEBHOOK` - For deployment summaries
   - [ ] `TEAMS_WEBHOOK_URL` - Optional Microsoft Teams integration
@@ -87,9 +89,9 @@
 - [ ] **Manual rollback:** Emergency workflow or commands documented
 - [ ] **Data safety:** Schema changes tested for rollback compatibility
 - [ ] **Chaos drill:** Pre-production rollback simulation completed
-  - [ ] Date completed: ______________
-  - [ ] Alerts verified: ______________
-  - [ ] Rollback time measured: ______________
+  - [ ] Date completed: ******\_\_******
+  - [ ] Alerts verified: ******\_\_******
+  - [ ] Rollback time measured: ******\_\_******
 
 ### 7. Testing and Validation
 
@@ -117,6 +119,7 @@ gh workflow run multi-region-deployment-with-monitoring.yml \
 ### Deployment Sequence
 
 1. **US East Deployment** (Stage 1)
+
    - [ ] Deploy to Green environment
    - [ ] Canary rollout: 10% → 25% → 50% → 75% → 100%
    - [ ] 5 minutes monitoring per stage
@@ -124,17 +127,20 @@ gh workflow run multi-region-deployment-with-monitoring.yml \
    - [ ] Slack notifications sent
 
 2. **Observation Period** (90 minutes)
+
    - [ ] Monitor US East metrics
    - [ ] Verify no error rate spikes
    - [ ] Confirm latency within thresholds
    - [ ] Check Grafana annotations
 
 3. **EU West Deployment** (Stage 2)
+
    - [ ] Automatic trigger after US East success
    - [ ] Same canary progression
    - [ ] Regional isolation confirmed
 
 4. **Observation Period** (90 minutes)
+
    - [ ] Monitor EU West metrics
    - [ ] Verify US East remains stable
 
@@ -201,19 +207,22 @@ Memory: _______% (target: <70%)
 ### Quick Retrospective Template
 
 **What went smoothly:**
-- _____________________________________________
-- _____________________________________________
-- _____________________________________________
+
+- ***
+- ***
+- ***
 
 **What was noisy/unexpected:**
-- _____________________________________________
-- _____________________________________________
-- _____________________________________________
+
+- ***
+- ***
+- ***
 
 **Action items to tighten process:**
-- [ ] _________________________________________ (Owner: _______, Due: _______)
-- [ ] _________________________________________ (Owner: _______, Due: _______)
-- [ ] _________________________________________ (Owner: _______, Due: _______)
+
+- [ ] ********************\_******************** (Owner: **\_\_\_**, Due: **\_\_\_**)
+- [ ] ********************\_******************** (Owner: **\_\_\_**, Due: **\_\_\_**)
+- [ ] ********************\_******************** (Owner: **\_\_\_**, Due: **\_\_\_**)
 
 ### Final Announcement
 
@@ -258,11 +267,13 @@ gh workflow run multi-region-deployment-with-monitoring.yml \
 ```
 
 **Benefits:**
+
 - Deployment time: ~45 minutes (vs ~5.5-11.5 hours delayed)
 - Simultaneous regional rollouts
 - Independent failure handling
 
 **Risks:**
+
 - Simultaneous failures harder to debug
 - No opportunity to learn from US before EU/APAC
 - Higher cognitive load during incidents
@@ -276,6 +287,7 @@ gh workflow run multi-region-deployment-with-monitoring.yml \
 **Escalation:** P1 ticket in JIRA + page VP Engineering
 
 **Emergency Rollback Workflow:**
+
 ```bash
 # Manual rollback if automated rollback fails
 gh workflow run emergency-rollback.yml -f region=<us|eu|apac>
@@ -289,11 +301,13 @@ gh workflow run emergency-rollback.yml -f region=<us|eu|apac>
 ## ✅ Sign-Off
 
 **Pre-Deployment Approval:**
-- [ ] Functional Lead: _________________ Date: _________
-- [ ] SRE Lead: _________________ Date: _________
-- [ ] Product Owner: _________________ Date: _________
+
+- [ ] Functional Lead: ********\_******** Date: ****\_****
+- [ ] SRE Lead: ********\_******** Date: ****\_****
+- [ ] Product Owner: ********\_******** Date: ****\_****
 
 **Post-Deployment Confirmation:**
+
 - [ ] All regions GREEN: ✅
 - [ ] Metrics within SLO: ✅
 - [ ] No rollbacks required: ✅

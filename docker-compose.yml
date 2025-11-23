@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: advvancia
+      POSTGRES_DB: advancia
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
@@ -14,24 +14,50 @@ services:
     networks:
       - app_net
 
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: advancia-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: advancia
+      RABBITMQ_DEFAULT_PASS: rabbitmq_pass_change_in_prod
+    ports:
+      - "5672:5672" # AMQP port
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app_net
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build: ./backend
     container_name: advancia_backend
     environment:
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/advvancia
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/advancia
+      - RABBITMQ_URL=amqp://advancia:rabbitmq_pass_change_in_prod@rabbitmq:5672
       - NODE_ENV=development
       - PORT=4000
       - JWT_SECRET=dev_secret_key_change_in_prod
     depends_on:
       - db
+      - rabbitmq
     ports:
       - "4000:4000"
     networks:
       - app_net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:4000/api/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   frontend:
     build: ./frontend
-    container_name: advvancia_frontend
+    container_name: advancia_frontend
     env_file:
       - ./frontend/.env
     depends_on:
@@ -40,15 +66,20 @@ services:
       - "3000:3000"
     networks:
       - app_net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   nginx:
     image: nginx:stable
-    container_name: advvancia_nginx
+    container_name: advancia_nginx
     depends_on:
       - frontend
       - backend
     volumes:
-      - ./nginx/advvancia.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/advancia.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
       - "80:80"
     networks:
@@ -56,6 +87,7 @@ services:
 
 volumes:
   db_data:
+  rabbitmq_data:
 
 
 networks:

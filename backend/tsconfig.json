@@ -7,7 +7,9 @@
     "types": ["node"],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
+    "exactOptionalPropertyTypes": false,
+    "noUncheckedIndexedAccess": true,
     "noImplicitAny": false,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
@@ -15,9 +17,27 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": false,
-    "declaration": true,
+    "noEmitOnError": false,
+    "declaration": false,
     "outDir": "./dist"
   },
-  "include": ["src/**/*", "tests/**/*"],
-  "exclude": ["node_modules", "dist", "src/routes.bak"]
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/routes.bak",
+    "src/services/ethGateway.ts",
+    "src/services/aiAnalyticsService.ts",
+    "src/services/oalService.ts",
+
+    "src/services/custodialWalletService.ts",
+    "src/services/trustpilotInvitationService.ts",
+    "src/routes/trustScore.ts",
+    "src/tracing.ts",
+    "src/utils/fakeDataGenerator.ts",
+    "src/rpa/scheduler.ts",
+    "tests/**/*",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
 }

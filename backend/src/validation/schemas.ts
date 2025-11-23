@@ -1,5 +1,113 @@
 import { z } from "zod";
 
+export const WithdrawalRequestSchema = z
+  .object({
+    balanceType: z
+      .string()
+      .transform((s) => s.toUpperCase())
+      .refine((v) => ["USD", "BTC", "ETH", "USDT"].includes(v), {
+        message: "balanceType must be USD, BTC, ETH, or USDT",
+      }),
+    amount: z
+      .union([z.number(), z.string()])
+      .transform((v) => (typeof v === "string" ? parseFloat(v) : v))
+      .refine((n) => !isNaN(n) && n > 0, {
+        message: "amount must be a positive number",
+      }),
+    withdrawalAddress: z
+      .string()
+      .min(1, "withdrawalAddress is required")
+      .optional(),
+    notes: z.string().max(1000).optional(),
+  })
+  .superRefine((val, ctx) => {
+    const needsAddress = ["BTC", "ETH", "USDT"].includes(val.balanceType);
+    if (needsAddress && !val.withdrawalAddress) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["withdrawalAddress"],
+        message: "withdrawalAddress is required for crypto withdrawals",
+      });
+    }
+  });
+
+export const WithdrawalAdminActionSchema = z.object({
+  action: z.enum(["approve", "reject"]),
+  adminNotes: z.string().max(2000).optional(),
+  txHash: z.string().max(200).optional(),
+  networkFee: z
+    .union([z.number(), z.string()])
+    .transform((v) =>
+      v === undefined || v === null || v === ""
+        ? undefined
+        : typeof v === "string"
+        ? parseFloat(v)
+        : v
+    )
+    .refine(
+      (v) => v === undefined || (!isNaN(v as number) && (v as number) >= 0),
+      {
+        message: "networkFee must be a non-negative number",
+      }
+    )
+    .optional(),
+});
+
+export type WithdrawalRequestInput = z.infer<typeof WithdrawalRequestSchema>;
+export type WithdrawalAdminActionInput = z.infer<
+  typeof WithdrawalAdminActionSchema
+>;
+
+// Auth schemas
+export const AuthRegisterSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+  username: z.string().min(3).max(50).optional(),
+  firstName: z.string().max(100).optional(),
+  lastName: z.string().max(100).optional(),
+});
+
+export const AuthLoginSchema = z.object({
+  // Accept username or email in the same field
+  email: z.string().min(1, "email or username is required"),
+  password: z.string().min(1, "password is required"),
+});
+
+// Payments schemas
+export const PaymentSaveMethodSchema = z.object({
+  paymentMethodId: z.string().min(1),
+});
+
+export const PaymentCreateIntentSchema = z.object({
+  amount: z.number().positive(),
+  currency: z.string().min(1).optional(),
+  description: z.string().max(500).optional(),
+  metadata: z.record(z.string()).optional(),
+});
+
+export const PaymentChargeSavedSchema = z.object({
+  paymentMethodId: z.string().min(1),
+  amount: z.number().positive(),
+  description: z.string().max(500).optional(),
+});
+
+export const SubscriptionCreateSchema = z.object({
+  priceId: z.string().optional(),
+  paymentMethodId: z.string().optional(),
+  planName: z.string().optional(),
+  amount: z.number().positive(),
+  interval: z.enum(["day", "week", "month", "year"]).optional(),
+});
+
+export const SubscriptionCancelSchema = z.object({
+  immediately: z.boolean().optional(),
+});
+
+export const AdminRefundSchema = z.object({
+  paymentIntentId: z.string().min(1),
+  amount: z.number().positive().optional(),
+});
+
 // User registration validation
 export const userRegistrationSchema = z.object({
   email: z.string().email("Invalid email format").max(255),
@@ -9,7 +117,7 @@ export const userRegistrationSchema = z.object({
     .max(128, "Password too long")
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      "Password must contain uppercase, lowercase, and number",
+      "Password must contain uppercase, lowercase, and number"
     ),
   firstName: z.string().min(1, "First name required").max(100).trim(),
   lastName: z.string().min(1, "Last name required").max(100).trim(),
@@ -39,7 +147,7 @@ export const passwordChangeSchema = z.object({
     .max(128, "Password too long")
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      "Password must contain uppercase, lowercase, and number",
+      "Password must contain uppercase, lowercase, and number"
     ),
 });
 
@@ -50,9 +158,7 @@ export const transactionSchema = z.object({
     .positive("Amount must be positive")
     .max(1000000, "Amount too large"),
   description: z.string().max(500, "Description too long").optional(),
-  type: z.enum(["credit", "debit"], {
-    errorMap: () => ({ message: "Invalid transaction type" }),
-  }),
+  type: z.enum(["credit", "debit"]),
 });
 
 // Payment validation
@@ -89,13 +195,11 @@ export const adminUserCreateSchema = z.object({
     .max(128, "Password too long")
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
-      "Password must contain uppercase, lowercase, number, and special character",
+      "Password must contain uppercase, lowercase, number, and special character"
     ),
   firstName: z.string().min(1, "First name required").max(100).trim(),
   lastName: z.string().min(1, "Last name required").max(100).trim(),
-  role: z.enum(["admin", "super_admin"], {
-    errorMap: () => ({ message: "Invalid role" }),
-  }),
+  role: z.enum(["admin", "super_admin"]),
 });
 
 // Contact/Support validation
@@ -115,9 +219,9 @@ export const fileUploadSchema = z.object({
     .refine(
       (type) =>
         ["image/jpeg", "image/png", "image/gif", "application/pdf"].includes(
-          type,
+          type
         ),
-      "Invalid file type",
+      "Invalid file type"
     ),
 });
 
@@ -134,9 +238,7 @@ export const ipBlockSchema = z.object({
 export const settingsSchema = z.object({
   key: z.string().min(1, "Key required").max(100).trim(),
   value: z.string().max(1000).trim(),
-  type: z.enum(["string", "number", "boolean", "json"], {
-    errorMap: () => ({ message: "Invalid setting type" }),
-  }),
+  type: z.enum(["string", "number", "boolean", "json"]),
 });
 
 // Generic ID validation
@@ -160,7 +262,7 @@ export const paginationSchema = z.object({
 // Search validation
 export const searchSchema = z.object({
   query: z.string().min(1, "Search query required").max(100).trim(),
-  filters: z.record(z.any()).optional(),
+  filters: z.record(z.string(), z.any()).optional(),
 });
 
 // Export validation schemas

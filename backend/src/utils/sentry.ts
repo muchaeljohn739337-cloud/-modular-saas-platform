@@ -34,8 +34,51 @@ export function initSentry() {
     // Release tracking
     release: process.env.npm_package_version || "1.0.0",
 
-    // Error filtering
+    // Error filtering and data sanitization
     beforeSend(event, hint) {
+      // Filter out sensitive data from requests
+      if (event.request) {
+        // Remove cookies
+        delete event.request.cookies;
+
+        // Remove authorization headers
+        if (event.request.headers) {
+          delete event.request.headers["authorization"];
+          delete event.request.headers["Authorization"];
+          delete event.request.headers["cookie"];
+          delete event.request.headers["Cookie"];
+        }
+
+        // Remove sensitive query params
+        if (event.request.query_string) {
+          event.request.query_string = event.request.query_string
+            .replace(/token=[^&]*/gi, "token=[REDACTED]")
+            .replace(/api[_-]?key=[^&]*/gi, "apiKey=[REDACTED]")
+            .replace(/password=[^&]*/gi, "password=[REDACTED]");
+        }
+      }
+
+      // Filter out sensitive data from extra context
+      if (event.extra) {
+        const sensitiveKeys = [
+          "password",
+          "token",
+          "apiKey",
+          "secret",
+          "privateKey",
+          "seedPhrase",
+        ];
+        Object.keys(event.extra).forEach((key) => {
+          if (
+            sensitiveKeys.some((sk) =>
+              key.toLowerCase().includes(sk.toLowerCase())
+            )
+          ) {
+            event.extra![key] = "[REDACTED]";
+          }
+        });
+      }
+
       // Filter out common non-errors
       if (event.exception) {
         const error = hint.originalException;

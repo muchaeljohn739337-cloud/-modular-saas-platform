@@ -1,168 +1,142 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# droplet-deploy.sh
-# One-shot helper to clone the repo, install Node, install deps,
-# run prisma migrations and start the backend with pm2.
-#
-# Usage (on the droplet):
-#   sudo bash droplet-deploy.sh
-#
-# Preconditions:
-# - An SSH deploy key for GitHub has been added to this machine and to the
-#   target GitHub repo (or your GitHub account).
-# - Run as root or a user with sudo privileges.
+# Clean droplet deployment script
+# Idempotent: safe to re-run for updates.
 
-REPO_SSH_URL="git@github.com:pdtribe181-prog/-modular-saas-platform.git"
-TARGET_PARENT_DIR="/var/www"
-REPO_DIR_NAME="-modular-saas-platform"
+REPO_SSH_URL="git@github.com:pdtribe181-prog/-modular-saas-platform.git"  # EDIT
+BRANCH="main"                                 # EDIT (or production)
+TARGET_PARENT_DIR="/var/www"                  # Base directory for clone
+REPO_DIR_NAME="-modular-saas-platform"        # Folder name of repo
 BACKEND_DIR="$TARGET_PARENT_DIR/$REPO_DIR_NAME/backend"
-NODE_VERSION="20"
+NODE_VERSION="20"                             # Node version via NodeSource
+APP_NAME="advancia-backend"
+ENV_FILE="$BACKEND_DIR/.env"                  # Expected env file
 
-echo "==> Deploy helper started"
-echo "Repo: $REPO_SSH_URL"
-echo "Target dir: $BACKEND_DIR"
+INSTALL_NODE=${INSTALL_NODE:-1}
+INSTALL_PM2=${INSTALL_PM2:-1}
+RUN_MIGRATIONS=${RUN_MIGRATIONS:-1}
+BUILD_TS=${BUILD_TS:-1}
+USE_PNPM=${USE_PNPM:-1}
+SYSTEM_USER=${SYSTEM_USER:-$(whoami)}
 
-if ! command -v git >/dev/null 2>&1; then
-  echo "Installing git..."
-  apt-get update -y
-  apt-get install -y git ca-certificates curl build-essential
-fi
+log(){ echo -e "\e[34m[droplet-deploy]\e[0m $*"; }
+warn(){ echo -e "\e[33m[droplet-deploy][warn]\e[0m $*"; }
+fail(){ echo -e "\e[31m[droplet-deploy][error]\e[0m $*"; exit 1; }
+need(){ command -v "$1" >/dev/null 2>&1 || fail "Missing dependency: $1"; }
 
-mkdir -p "$TARGET_PARENT_DIR"
-chown "$SUDO_USER:${SUDO_USER:-$(whoami)}" "$TARGET_PARENT_DIR" || true
+log "Starting deployment for $APP_NAME"
+need git
+need curl
+
+mkdir -p "$TARGET_PARENT_DIR" || fail "Could not create $TARGET_PARENT_DIR"
 cd "$TARGET_PARENT_DIR"
 
-if [ -d "$TARGET_PARENT_DIR/$REPO_DIR_NAME" ]; then
-  echo "Repository already exists in $TARGET_PARENT_DIR/$REPO_DIR_NAME — skipping clone"
-  # Skip git pull when running as sudo to avoid SSH key issues
-  # User should manually pull if needed before running this script
+if [ -d "$REPO_DIR_NAME/.git" ]; then
+  log "Repo exists; pulling latest ($BRANCH)"
+  (cd "$REPO_DIR_NAME" && git fetch origin "$BRANCH" && git reset --hard "origin/$BRANCH") || fail "Git pull failed"
 else
-  echo "Cloning repository..."
-  git clone "$REPO_SSH_URL"
+  log "Cloning repository $REPO_SSH_URL (branch $BRANCH)"
+  git clone --depth 1 -b "$BRANCH" "$REPO_SSH_URL" "$REPO_DIR_NAME" || fail "Clone failed"
 fi
 
-cd "$BACKEND_DIR"
+cd "$BACKEND_DIR" || fail "Backend dir missing at $BACKEND_DIR"
 
-echo "==> Installing nvm and Node.js $NODE_VERSION (if needed)"
-export NVM_DIR="$HOME/.nvm"
-if [ ! -s "$NVM_DIR/nvm.sh" ]; then
-  curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.6/install.sh | bash
-fi
-# shellcheck source=/dev/null
-if [ -s "$NVM_DIR/nvm.sh" ]; then
-  . "$NVM_DIR/nvm.sh"
-fi
-nvm install "$NODE_VERSION" || true
-nvm use "$NODE_VERSION" || true
-
-echo "==> Installing repository dependencies"
-npm install --no-audit --no-fund
-
-echo "==> Generating Prisma client"
-npx prisma generate
-
-echo "==> IMPORTANT: Ensure you have a valid .env in $BACKEND_DIR with DATABASE_URL and other secrets."
-if [ ! -f .env ]; then
-  if [ -f .env.test ]; then
-    echo "No .env found — copying .env.test -> .env (edit values as needed)"
-    cp .env.test .env
+if [ "$INSTALL_NODE" -eq 1 ]; then
+  if ! command -v node >/dev/null 2>&1; then
+    log "Installing Node.js $NODE_VERSION via NodeSource"
+    curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash -
+    apt-get install -y nodejs build-essential
   else
-    echo "No .env or .env.test present — create .env before running migrations"
+    log "Node already present: $(node -v)"
   fi
 fi
 
-echo "==> Running Prisma migrations (deploy)"
-if [ -n "${DATABASE_URL:-}" ] || grep -q 'DATABASE_URL' .env 2>/dev/null; then
-  npx prisma migrate deploy || echo "Prisma migrate deploy returned non-zero exit code"
+if [ "$USE_PNPM" -eq 1 ]; then
+  if ! command -v pnpm >/dev/null 2>&1; then
+    log "Installing pnpm via corepack"
+    corepack enable || npm install -g corepack || true
+    corepack prepare pnpm@latest --activate || npm install -g pnpm || true
+  fi
+  PKG_INSTALLER="pnpm install --frozen-lockfile || pnpm install"
 else
-  echo "DATABASE_URL not set in environment nor .env — skipping migrations"
+  PKG_INSTALLER="npm install --no-audit --no-fund"
 fi
 
-echo "==> Starting backend with pm2"
-if ! command -v pm2 >/dev/null 2>&1; then
-  npm install -g pm2
+log "Installing dependencies"
+eval $PKG_INSTALLER || fail "Dependency install failed"
+
+log "Generating Prisma client"
+npx prisma generate || fail "Prisma client generation failed"
+
+if [ ! -f "$ENV_FILE" ]; then
+  warn "Env file $ENV_FILE missing. Creating template (EDIT SECRETS before restart)."
+  cat > "$ENV_FILE" <<ENV
+NODE_ENV=production
+PORT=4000
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/advancia_db?schema=public
+JWT_SECRET=$(openssl rand -hex 32)
+STRIPE_SECRET_KEY=sk_test_replace
+STRIPE_WEBHOOK_SECRET=whsec_replace
+CRYPTOMUS_API_KEY=replace
+CRYPTOMUS_MERCHANT_ID=replace
+EMAIL_USER=replace
+EMAIL_PASSWORD=replace
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SENTRY_DSN=
+ALLOWED_ORIGINS=https://advanciapayledger.com,https://www.advanciapayledger.com,https://app.advanciapayledger.com,https://api.advanciapayledger.com
+SKIP_DATABASE_VALIDATION=0
+ENV
 fi
 
-# Start or reload the app using pm2
-if pm2 list | grep -q advancia-backend; then
-  echo "Reloading advancia-backend with pm2"
-  pm2 restart advancia-backend || pm2 reload advancia-backend || true
+if [ "$RUN_MIGRATIONS" -eq 1 ]; then
+  if grep -q 'DATABASE_URL' "$ENV_FILE"; then
+    log "Running prisma migrate deploy"
+    npx prisma migrate deploy || fail "Migration failed"
+  else
+    warn "DATABASE_URL not set in $ENV_FILE; skipping migrations"
+  fi
+fi
+
+if [ "$BUILD_TS" -eq 1 ]; then
+  if grep -q '"build"' package.json; then
+    log "Building TypeScript"
+    (npm run build || pnpm run build) || fail "Build failed"
+  else
+    warn "No build script found; skipping"
+  fi
+fi
+
+if [ "$INSTALL_PM2" -eq 1 ]; then
+  if ! command -v pm2 >/dev/null 2>&1; then
+    log "Installing PM2 globally"
+    npm install -g pm2 || pnpm add -g pm2 || true
+  fi
+  START_CMD="dist/index.js"
+  if [ ! -f dist/index.js ]; then
+    warn "dist/index.js missing; falling back to src/index.ts with ts-node"
+    START_CMD="node_modules/.bin/ts-node src/index.ts"
+  fi
+  if pm2 list | grep -q "$APP_NAME"; then
+    log "Reloading existing PM2 app"
+    pm2 restart "$APP_NAME" || pm2 reload "$APP_NAME" || true
+  else
+    log "Starting PM2 app ($START_CMD)"
+    pm2 start $START_CMD --name "$APP_NAME" --time --update-env
+  fi
+  pm2 save || warn "PM2 save failed (non-fatal)"
+fi
+
+log "Local health probe"
+if curl -fsS http://127.0.0.1:4000/health >/dev/null 2>&1; then
+  log "Health OK (local)"
 else
-  echo "Starting advancia-backend with pm2"
-  pm2 start npm --name advancia-backend -- start
+  warn "Health endpoint not responding locally; check PM2 logs"
+  pm2 logs "$APP_NAME" --lines 50 || true
 fi
 
-pm2 save
-
-echo "==> Deploy helper finished — check pm2 status and logs"
-echo "  pm2 status advancia-backend"
-echo "  pm2 logs advancia-backend --lines 200"
-
-# Optional: when run as root, optionally install systemd unit and nginx site
-# Controls via environment variables (set when invoking the script):
-#   ENABLE_SYSTEMD=true  -> install and start systemd unit from templates
-#   ENABLE_NGINX=true    -> install nginx site from templates
-#   ENABLE_CERTBOT=true  -> run certbot for SERVER_NAME (requires domain)
-#   SERVER_NAME=example.com
-#   SERVICE_USER=www-data
-
-if [ "$(id -u)" -eq 0 ]; then
-  echo "==> Running post-deploy system tasks as root"
-
-  # Install systemd unit if requested
-  if [ "${ENABLE_SYSTEMD:-false}" = "true" ]; then
-    UNIT_TEMPLATE="$BACKEND_DIR/deploy/templates/advancia-backend.service.template"
-    if [ -f "$UNIT_TEMPLATE" ]; then
-      SERVICE_USER="${SERVICE_USER:-www-data}"
-      ENV_FILE="${ENV_FILE:-$BACKEND_DIR/.env}"
-      WORKING_DIR="${WORKING_DIR:-$BACKEND_DIR}"
-      echo "Installing systemd unit from template (user=$SERVICE_USER, env_file=$ENV_FILE)"
-      # Backup existing unit if present
-      if [ -f /etc/systemd/system/advancia-backend.service ]; then
-        ts=$(date +%Y%m%d%H%M%S)
-        echo "Backing up existing systemd unit to /etc/systemd/system/advancia-backend.service.bak.$ts"
-        cp /etc/systemd/system/advancia-backend.service /etc/systemd/system/advancia-backend.service.bak.$ts
-      fi
-      sed -e "s/{{USER}}/${SERVICE_USER}/g" \
-          -e "s|{{WORKING_DIR}}|${WORKING_DIR}|g" \
-          -e "s|{{ENV_FILE}}|${ENV_FILE}|g" \
-          "$UNIT_TEMPLATE" > /etc/systemd/system/advancia-backend.service
-      systemctl daemon-reload
-      systemctl enable advancia-backend
-      systemctl restart advancia-backend || true
-      echo "Systemd unit installed and started (advancia-backend)"
-    else
-      echo "Systemd template not found at $UNIT_TEMPLATE — skipping"
-    fi
-  fi
-
-  # Install nginx site if requested
-  if [ "${ENABLE_NGINX:-false}" = "true" ]; then
-    NGINX_TEMPLATE="$BACKEND_DIR/deploy/templates/advancia-nginx.conf.template"
-    if [ -f "$NGINX_TEMPLATE" ]; then
-      SERVER_NAME="${SERVER_NAME:-_}"
-      echo "Installing nginx site for server_name=$SERVER_NAME"
-      # Backup existing nginx config if present
-      if [ -f /etc/nginx/sites-available/advancia ]; then
-        ts=$(date +%Y%m%d%H%M%S)
-        echo "Backing up existing nginx site to /etc/nginx/sites-available/advancia.bak.$ts"
-        cp /etc/nginx/sites-available/advancia /etc/nginx/sites-available/advancia.bak.$ts
-      fi
-      sed -e "s/{{SERVER_NAME}}/${SERVER_NAME}/g" "$NGINX_TEMPLATE" > /etc/nginx/sites-available/advancia
-      ln -sf /etc/nginx/sites-available/advancia /etc/nginx/sites-enabled/advancia
-      nginx -t && systemctl restart nginx || echo "nginx test/restart failed"
-
-      if [ "${ENABLE_CERTBOT:-false}" = "true" ] && [ "$SERVER_NAME" != "_" ]; then
-        echo "Attempting to obtain TLS certificate for $SERVER_NAME via certbot"
-        apt-get update -y
-        apt-get install -y certbot python3-certbot-nginx || true
-        certbot --nginx -d "$SERVER_NAME" --non-interactive --agree-tos -m "admin@$SERVER_NAME" || echo "certbot failed or requires manual intervention"
-      fi
-    else
-      echo "NGINX template not found at $NGINX_TEMPLATE — skipping"
-    fi
-  fi
-fi
+log "Done. Next: configure nginx/SSL, backups, monitoring."
+echo "Commands: pm2 status; pm2 logs $APP_NAME --lines 100" 
 
 exit 0

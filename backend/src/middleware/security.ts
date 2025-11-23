@@ -1,6 +1,7 @@
 import cors from "cors";
 import { NextFunction, Request, Response } from "express";
 import helmet from "helmet";
+import { config } from "../jobs/config";
 import { EnvironmentInspector } from "../utils/envInspector";
 
 // Lazy-load environment inspector to avoid validation errors during tests
@@ -30,7 +31,7 @@ const initRedisLimiter = () => {
       });
     } catch (error) {
       console.warn(
-        "⚠️  Redis rate limiter failed to initialize, falling back to in-memory",
+        "⚠️  Redis rate limiter failed to initialize, falling back to in-memory"
       );
     }
   }
@@ -68,7 +69,7 @@ export function rateLimit(options: RateLimitOptions) {
           res.setHeader("X-RateLimit-Remaining", 0);
           res.setHeader(
             "X-RateLimit-Reset",
-            new Date(Date.now() + rejRes.msBeforeNext).toISOString(),
+            new Date(Date.now() + rejRes.msBeforeNext).toISOString()
           );
 
           return res.status(429).json({
@@ -104,7 +105,7 @@ export function rateLimit(options: RateLimitOptions) {
           res.setHeader("X-RateLimit-Remaining", 0);
           res.setHeader(
             "X-RateLimit-Reset",
-            new Date(record.resetTime).toISOString(),
+            new Date(record.resetTime).toISOString()
           );
 
           return res.status(429).json({
@@ -118,7 +119,7 @@ export function rateLimit(options: RateLimitOptions) {
         res.setHeader("X-RateLimit-Remaining", maxRequests - record.count);
         res.setHeader(
           "X-RateLimit-Reset",
-          new Date(record.resetTime).toISOString(),
+          new Date(record.resetTime).toISOString()
         );
 
         next();
@@ -150,7 +151,8 @@ const cleanupInterval = setInterval(() => {
 // Don't run cleanup in test environment or when using Redis
 if (process.env.NODE_ENV === "test" || redisLimiter) {
   cleanupInterval.unref();
-} /**
+}
+/**
  * Input validation middleware
  * Sanitizes and validates request inputs
  */
@@ -184,6 +186,7 @@ export function validateInput(req: Request, res: Response, next: NextFunction) {
 /**
  * CORS middleware configuration
  * Allows cross-origin requests from specified origins
+ * Uses config.allowedOrigins as single source of truth
  */
 export function corsMiddleware() {
   const corsOptions = {
@@ -191,22 +194,21 @@ export function corsMiddleware() {
       // Allow requests with no origin (mobile apps, Postman, etc.)
       if (!origin) return callback(null, true);
 
-      const allowedOrigins = [
-        "http://localhost:3000", // Frontend development
-        "http://localhost:3001",
-        "https://yourdomain.com", // Replace with your production domain
-        "https://www.yourdomain.com",
-      ];
-
-      if (allowedOrigins.indexOf(origin) !== -1) {
+      // Use centralized allowed origins from config
+      if (config.allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "X-API-Key",
+    ],
   };
 
   return cors(corsOptions);
@@ -217,6 +219,20 @@ export function corsMiddleware() {
  * Applies comprehensive security headers
  */
 export function helmetMiddleware() {
+  const isProd = process.env.NODE_ENV === "production";
+
+  // Allow self plus explicit allowed origins; include websockets
+  const connectSrc = ["'self'", "wss:", ...config.allowedOrigins];
+  // In dev, permit localhost ranges to ease phone preview on LAN
+  if (!isProd) {
+    connectSrc.push(
+      "http://localhost:*",
+      "http://127.0.0.1:*",
+      "ws://localhost:*",
+      "ws://127.0.0.1:*"
+    );
+  }
+
   return helmet({
     contentSecurityPolicy: {
       directives: {
@@ -224,13 +240,15 @@ export function helmetMiddleware() {
         styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
         imgSrc: ["'self'", "data:", "https:"],
-        connectSrc: ["'self'"],
+        connectSrc,
         fontSrc: ["'self'"],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
-        frameSrc: ["'none'"],
+        frameAncestors: ["'none'"],
       },
     },
+    crossOriginOpenerPolicy: { policy: "same-origin" },
+    crossOriginResourcePolicy: { policy: "same-origin" },
     hsts: {
       maxAge: 31536000,
       includeSubDomains: true,

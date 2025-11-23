@@ -1,0 +1,171 @@
+# CODEOWNERS - Code Review Assignments
+# 
+# This file defines code ownership and automatic review assignment for pull requests.
+# When a PR is created, GitHub will automatically request reviews from the owners of modified files.
+#
+# Syntax: <file-pattern> @github-username @team-name
+#
+# Learn more: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# ============================================================================
+# Default Owners (fallback for all files)
+# ============================================================================
+# Uncomment and set your GitHub username or team
+# * @your-github-username @your-team
+
+# ============================================================================
+# Backend Code
+# ============================================================================
+/backend/**                                  @backend-team
+/backend/src/routes/**                       @backend-team
+/backend/src/middleware/**                   @backend-team
+/backend/src/services/**                     @backend-team
+
+# Database & Prisma
+/backend/prisma/**                           @backend-team @database-admin
+/backend/prisma/migrations/**                @database-admin
+/backend/prisma/schema.prisma                @backend-team @database-admin
+
+# ============================================================================
+# Frontend Code
+# ============================================================================
+/frontend/**                                 @frontend-team
+/frontend/src/components/**                  @frontend-team
+/frontend/src/pages/**                       @frontend-team
+/frontend/src/app/**                         @frontend-team
+
+# Styling
+/frontend/**/*.css                           @frontend-team @ui-designer
+/frontend/**/*.scss                          @frontend-team @ui-designer
+/frontend/tailwind.config.js                 @frontend-team @ui-designer
+
+# ============================================================================
+# Security-Sensitive Files (Require Security Team Review)
+# ============================================================================
+
+# Authentication & Authorization
+/backend/src/middleware/auth.ts              @security-team
+/backend/src/routes/auth.ts                  @security-team
+/backend/src/utils/encryption.ts             @security-team
+/backend/src/services/notificationService.ts @security-team
+
+# Environment & Configuration Files
+/.env.example                                @security-team
+/.env.*.example                              @security-team
+/backend/.env.example                        @security-team
+/frontend/.env.example                       @security-team
+
+# Secret Management & Encryption
+/scripts/secrets/**                          @security-team
+/**/encrypt*.ts                              @security-team
+/**/decrypt*.ts                              @security-team
+/**/secrets*.ts                              @security-team
+
+# Security Scripts & Scanners
+/scripts/scan-sensitive-files.ps1            @security-team
+/scripts/scan-sensitive-files.sh             @security-team
+/SECURITY*.md                                @security-team
+/SECRET_MANAGEMENT_GUIDE.md                  @security-team
+
+# Payment Processing (Critical)
+/backend/src/routes/payments.ts              @security-team @backend-team
+/backend/src/routes/stripe.ts                @security-team @backend-team
+
+# API Keys & Credentials Management
+/backend/src/config/keys.ts                  @security-team
+/backend/src/config/secrets.ts               @security-team
+
+# ============================================================================
+# DevOps & Infrastructure (Require DevOps Review)
+# ============================================================================
+/.github/workflows/**                        @devops-team
+/docker-compose*.yml                         @devops-team
+/Dockerfile                                  @devops-team
+/ecosystem.config.js                         @devops-team
+/ecosystem.config.json                       @devops-team
+
+# Deployment scripts
+/scripts/**                                  @devops-team
+*.sh                                         @devops-team
+*.ps1                                        @devops-team
+
+# CI/CD Configuration
+/.github/workflows/ci*.yml                   @devops-team
+/.github/workflows/deploy*.yml               @devops-team
+/.github/workflows/backup*.yml               @devops-team
+
+# ============================================================================
+# Configuration Files (Require Lead Review)
+# ============================================================================
+/backend/package.json                        @tech-lead @backend-team
+/frontend/package.json                       @tech-lead @frontend-team
+/backend/tsconfig.json                       @tech-lead @backend-team
+/frontend/tsconfig.json                      @tech-lead @frontend-team
+/frontend/next.config.js                     @tech-lead @frontend-team
+
+# ============================================================================
+# Documentation (Require Tech Writer or PM Review)
+# ============================================================================
+/docs/**                                     @tech-writer @product-manager
+*.md                                         @tech-writer
+/README.md                                   @tech-writer @product-manager
+/CONTRIBUTING.md                             @tech-writer @devops-team
+/CODE_OF_CONDUCT.md                          @tech-writer @product-manager
+
+# API Documentation
+/API_REFERENCE.md                            @tech-writer @backend-team
+/API_TESTING_GUIDE.md                        @tech-writer @backend-team @qa-team
+
+# Deployment Guides
+/DEPLOYMENT*.md                              @tech-writer @devops-team
+/HOW_TO_DEPLOY.md                            @tech-writer @devops-team
+
+# Security Documentation
+/SECURITY*.md                                @security-team @tech-writer
+/SECRET_MANAGEMENT_GUIDE.md                  @security-team @devops-team
+
+# ============================================================================
+# Payment Integration (Require Finance & Backend Review)
+# ============================================================================
+/backend/src/routes/payments.ts              @backend-team @finance-team
+/backend/src/routes/cryptomus.ts             @backend-team @finance-team
+/backend/src/routes/cryptoEnhanced.ts        @backend-team @finance-team
+/frontend/src/components/Payment*.tsx        @frontend-team @finance-team
+
+# ============================================================================
+# Testing (Require QA Review)
+# ============================================================================
+**/*.test.ts                                 @qa-team
+**/*.test.tsx                                @qa-team
+**/*.spec.ts                                 @qa-team
+**/*.spec.tsx                                @qa-team
+/backend/__tests__/**                        @qa-team @backend-team
+/frontend/__tests__/**                       @qa-team @frontend-team
+
+# Integration Tests
+/.github/workflows/integration-tests.yml     @qa-team @devops-team
+
+# ============================================================================
+# Legal & Compliance (Require Legal Review)
+# ============================================================================
+/LICENSE                                     @legal-team
+/PRIVACY_POLICY.md                           @legal-team @product-manager
+/TERMS_OF_SERVICE.md                         @legal-team @product-manager
+
+# ============================================================================
+# Branch Protection & GitHub Configuration
+# ============================================================================
+/.github/CODEOWNERS                          @tech-lead @devops-team
+/.github/workflows/apply-branch-protection.yml @tech-lead @devops-team
+/.github/workflows/setup-branch-protection.yml @tech-lead @devops-team
+/BRANCH_PROTECTION_GUIDE.md                  @tech-lead @devops-team
+
+# ============================================================================
+# Notes for Team:
+# ============================================================================
+# 1. Replace @team-name with actual GitHub team names (e.g., @myorg/backend-team)
+# 2. Replace @username with actual GitHub usernames
+# 3. Teams must have read access to the repository
+# 4. Code owners are automatically requested for review on PRs
+# 5. At least one code owner must approve before merging (if enabled in branch protection)
+# ============================================================================

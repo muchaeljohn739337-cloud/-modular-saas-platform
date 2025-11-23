@@ -245,20 +245,25 @@ export default function UsersTable() {
                   placeholder="Search by name or email"
                   className="border rounded px-3 py-2 w-64"
                 />
-                <select
+                <input
+                  type="text"
+                  id="role-filter"
                   aria-label="Filter by role"
                   value={role}
                   onChange={(e) => {
                     setRole(e.target.value);
                     setPage(1);
                   }}
-                  className="border rounded px-3 py-2"
-                >
+                  list="role-filter-options"
+                  placeholder="All roles"
+                  className="border rounded px-3 py-2 w-32"
+                />
+                <datalist id="role-filter-options">
                   <option value="">All roles</option>
                   <option value="USER">User</option>
                   <option value="STAFF">Staff</option>
                   <option value="ADMIN">Admin</option>
-                </select>
+                </datalist>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600 dark:text-gray-300">
@@ -362,22 +367,23 @@ export default function UsersTable() {
                 <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
                   {selectedUsers.size} user(s) selected
                 </span>
-                <select
+                <input
+                  type="text"
+                  id="bulk-action"
                   value={bulkAction}
                   onChange={(e) => setBulkAction(e.target.value)}
-                  className="border rounded px-3 py-2 text-sm"
-                >
-                  <option value="">Select action...</option>
+                  list="bulk-action-options"
+                  placeholder="Select action..."
+                  className="border rounded px-3 py-2 text-sm w-48"
+                />
+                <datalist id="bulk-action-options">
                   <option value="activate">✓ Activate</option>
                   <option value="deactivate">✗ Deactivate</option>
                   <option value="make-admin">⬆ Make Admin</option>
                   <option value="make-user">⬇ Make User</option>
                   <option value="verify-email">✉ Verify Email</option>
-                  <option value="reset-password">
-                    <Lock className="inline w-4 h-4" /> Reset Password
-                  </option>
-                  <option value="export">
-                    <Download className="inline w-4 h-4" /> Export CSV
+                  <option value="reset-password">Reset Password</option>
+                  <option value="export">Export CSV
                   </option>
                   <option value="enable-gpt5">🤖 Enable GPT-5</option>
                   <option value="delete">

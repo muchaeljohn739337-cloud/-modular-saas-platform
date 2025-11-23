@@ -1,11 +1,11 @@
 "use client";
 
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
-import { useSession } from "next-auth/react";
-import { Camera, Mail, Shield, UserCircle, Users } from "lucide-react";
-import SidebarLayout from "@/components/SidebarLayout";
 import ProfileOverviewCard from "@/components/ProfileOverviewCard";
+import SidebarLayout from "@/components/SidebarLayout";
+import { Camera, Mail, Shield, UserCircle, Users } from "lucide-react";
+import { useSession } from "next-auth/react";
+import Image from "next/image";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 interface SessionUser {
   id?: string;
@@ -35,7 +35,7 @@ export default function ProfilePage() {
   }, [sessionUser?.name, sessionUser?.email]);
 
   const initials = useMemo(() => {
-    const parts = displayName.split(/\s+/).filter(Boolean);
+    const parts = (displayName || "Advancia User").split(/\s+/).filter(Boolean);
     if (!parts.length) return "AU";
     const first = parts[0]?.[0] ?? "";
     const last = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? "" : "";
@@ -158,7 +158,8 @@ export default function ProfilePage() {
           <div>
             <h1 className="text-3xl font-bold text-slate-900">My Profile</h1>
             <p className="mt-2 text-sm text-slate-600">
-              Review your personal information, manage your avatar, and confirm your account status.
+              Review your personal information, manage your avatar, and confirm
+              your account status.
             </p>
           </div>
 
@@ -178,7 +179,9 @@ export default function ProfilePage() {
               if (typeof window !== "undefined" && window.smartsupp) {
                 window.smartsupp("chat:open");
               } else {
-                alert("Live support is getting ready. Please try again shortly.");
+                alert(
+                  "Live support is getting ready. Please try again shortly."
+                );
               }
             }}
             topUpLoading={topUpLoading}
@@ -213,7 +216,8 @@ export default function ProfilePage() {
                 </label>
 
                 <p className="mt-3 text-xs text-slate-500">
-                  Your image stays in this session only. Save to backend storage to persist this avatar.
+                  Your image stays in this session only. Save to backend storage
+                  to persist this avatar.
                 </p>
               </div>
             </section>
@@ -226,25 +230,38 @@ export default function ProfilePage() {
                 </h2>
                 <dl className="mt-4 grid gap-4 sm:grid-cols-2">
                   <div>
-                    <dt className="text-xs uppercase tracking-wide text-slate-500">Full Name</dt>
-                    <dd className="mt-1 text-sm font-semibold text-slate-800">{displayName}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs uppercase tracking-wide text-slate-500">Role</dt>
-                    <dd className="mt-1 flex items-center gap-2 text-sm font-semibold text-slate-800">
-                      <Shield className="h-4 w-4 text-emerald-500" /> {calculatedRole}
+                    <dt className="text-xs uppercase tracking-wide text-slate-500">
+                      Full Name
+                    </dt>
+                    <dd className="mt-1 text-sm font-semibold text-slate-800">
+                      {displayName}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-xs uppercase tracking-wide text-slate-500">Email</dt>
+                    <dt className="text-xs uppercase tracking-wide text-slate-500">
+                      Role
+                    </dt>
+                    <dd className="mt-1 flex items-center gap-2 text-sm font-semibold text-slate-800">
+                      <Shield className="h-4 w-4 text-emerald-500" />{" "}
+                      {calculatedRole}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs uppercase tracking-wide text-slate-500">
+                      Email
+                    </dt>
                     <dd className="mt-1 flex items-center gap-2 text-sm font-semibold text-slate-800 break-all">
                       <Mail className="h-4 w-4 text-blue-500" />
                       {sessionUser?.email || "Not provided"}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-xs uppercase tracking-wide text-slate-500">Account Number</dt>
-                    <dd className="mt-1 text-sm font-semibold text-slate-800">{derivedAccountNumber || "Pending"}</dd>
+                    <dt className="text-xs uppercase tracking-wide text-slate-500">
+                      Account Number
+                    </dt>
+                    <dd className="mt-1 text-sm font-semibold text-slate-800">
+                      {derivedAccountNumber || "Pending"}
+                    </dd>
                   </div>
                 </dl>
               </div>
@@ -255,9 +272,18 @@ export default function ProfilePage() {
                   Security & Access
                 </h2>
                 <ul className="mt-4 space-y-3 text-sm text-slate-600">
-                  <li>• Access limited to your profile and authorized dashboard sections.</li>
-                  <li>• Uploading a picture here updates your on-screen avatar immediately.</li>
-                  <li>• Contact an administrator for role upgrades or additional privileges.</li>
+                  <li>
+                    • Access limited to your profile and authorized dashboard
+                    sections.
+                  </li>
+                  <li>
+                    • Uploading a picture here updates your on-screen avatar
+                    immediately.
+                  </li>
+                  <li>
+                    • Contact an administrator for role upgrades or additional
+                    privileges.
+                  </li>
                 </ul>
               </div>
             </section>

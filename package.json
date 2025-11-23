@@ -8,6 +8,13 @@
     "backend"
   ],
   "scripts": {
+    "sass": "sass styles/main.scss public/css/main.css",
+    "sass:watch": "sass --watch styles/main.scss:public/css/main.css",
+    "sass:build": "sass styles/main.scss public/css/main.css --style compressed",
+    "template:build": "tsc --project tsconfig.template.json && npm run template:compile-css",
+    "template:compile-css": "sass templates/template.scss templates/template.css --style compressed",
+    "template:watch": "tsc --project tsconfig.template.json --watch",
+    "template:serve": "live-server templates --port=8080",
     "prisma:generate": "cd backend && prisma generate",
     "prisma:migrate:dev": "cd backend && prisma migrate dev --name init",
     "prisma:migrate:deploy": "cd backend && prisma migrate deploy",
@@ -21,7 +28,9 @@
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces",
     "type-check": "npm run type-check --workspaces",
-    "start": "cd frontend && npm start"
+    "start": "cd frontend && npm start",
+    "prepare": "node -e \"try { if (process.env.NODE_ENV !== 'production' && require('fs').existsSync('.git')) require('husky').install() } catch (e) {}\"",
+    "docs:lint": "markdownlint-cli2"
   },
   "engines": {
     "node": ">=18.0.0",
@@ -54,13 +63,24 @@
       "send": ">=0.19.0",
       "serve-static": ">=1.16.0",
       "esbuild": ">=0.25.0"
-    }
+    },
+    "ignoredBuiltDependencies": [
+      "argon2",
+      "bcrypt"
+    ]
   },
   "devDependencies": {
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "markdownlint-cli": "^0.41.0",
+    "markdownlint-cli2": "^0.14.0",
     "sharp": "^0.34.5"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
     "redis": "^5.9.0"
+  },
+  "lint-staged": {
+    "*.md": "markdownlint --fix"
   }
 }
