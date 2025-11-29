@@ -5,8 +5,13 @@ import prisma from '../prismaClient';
 const router = Router();
 
 // OpenWeatherMap API configuration
-const OPENWEATHERMAP_API_KEY = process.env.OPENWEATHERMAP_API_KEY || '';
+const OPENWEATHERMAP_API_KEY = process.env.OPENWEATHERMAP_API_KEY;
 const OPENWEATHERMAP_BASE_URL = 'https://api.openweathermap.org/data/2.5';
+
+// Log warning if API key is not configured
+if (!OPENWEATHERMAP_API_KEY) {
+  console.warn('[Weather API] OPENWEATHERMAP_API_KEY is not set. Weather endpoints will return errors.');
+}
 
 // Subscription tier configurations
 const SUBSCRIPTION_TIERS = {
@@ -534,8 +539,9 @@ async function checkAndUpdateRateLimit(userId: string): Promise<{
     };
   } catch (error) {
     console.error('[Weather API] Rate limit check error:', error);
-    // Allow the request if rate limiting fails to avoid blocking users
-    return { allowed: true, callsToday: 0, remaining: 50, limit: 50 };
+    // Deny the request when rate limiting fails to prevent abuse
+    // This is more secure than allowing unlimited requests on database errors
+    return { allowed: false, callsToday: 0, remaining: 0, limit: 0 };
   }
 }
 
@@ -575,8 +581,9 @@ function processForecastData(
 
   // Group data by date
   for (const item of list) {
-    const dateStr = new Date(item.dt * 1000).toISOString().split('T')[0] || '';
-    if (!dateStr) continue;
+    // ISO date string format is always YYYY-MM-DDTHH:mm:ss.sssZ, so split always returns date part
+    const isoString = new Date(item.dt * 1000).toISOString();
+    const dateStr = isoString.substring(0, 10); // Extract YYYY-MM-DD
     if (!dailyData[dateStr]) {
       dailyData[dateStr] = {
         temps: [],

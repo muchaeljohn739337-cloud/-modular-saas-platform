@@ -91,7 +91,10 @@ interface PricingTier {
   features: string[];
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+// Use environment variable for API URL, with localhost fallback for development only
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || (
+  process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : ''
+);
 
 export default function WeatherSaaSDashboard() {
   const { data: session } = useSession();
@@ -446,7 +449,9 @@ export default function WeatherSaaSDashboard() {
                     <span className="text-sm">Visibility</span>
                   </div>
                   <span className="text-2xl font-bold">
-                    {Math.round(weather.details.visibility / 1000)} km
+                    {weather.details.visibility != null
+                      ? `${Math.round(weather.details.visibility / 1000)} km`
+                      : 'N/A'}
                   </span>
                 </div>
                 <div className="bg-white/20 backdrop-blur rounded-xl p-4">
