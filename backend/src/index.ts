@@ -209,6 +209,8 @@ import twoFactorRouter from "./routes/twoFactor";
 // import adminUsersRouter, { setAdminUsersSocketIO } from "./routes/users"; // File not in active codebase
 // import walletsRouter from "./routes/wallets"; // File not in active codebase
 import withdrawalsRouter from "./routes/withdrawals";
+// Weather SaaS API
+import weatherSaasRouter from "./routes/weatherSaas";
 // Project Management routes
 import milestonesRouter, { setMilestoneSocketIO } from "./routes/milestones";
 import projectsRouter, { setProjectSocketIO } from "./routes/projects";
@@ -408,6 +410,9 @@ app.use("/api/auth/2fa", twoFactorRouter);
 // app.use("/api/health-readings", healthReadingsRouter);
 app.use("/api/password-recovery", passwordRecoveryRouter); // Password recovery & admin user lookup
 app.use("/api/auth", emailSignupRouter); // Email magic link signup
+
+// Weather SaaS API
+app.use("/api/weather", weatherSaasRouter); // Weather API SaaS (FREE/PRO/BUSINESS/ENTERPRISE tiers)
 
 // Project Management routes
 app.use("/api/teams", teamsRouter);

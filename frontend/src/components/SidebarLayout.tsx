@@ -6,6 +6,7 @@ import {
   BarChart3,
   Book,
   ChevronRight,
+  Cloud,
   DollarSign,
   FolderOpen,
   Globe,
@@ -81,6 +82,8 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
     { href: '/assets', label: 'My Assets', icon: Wallet },
     { href: '/eth/transactions', label: 'ETH Activity', icon: Activity },
     { href: '/loans', label: 'Loans', icon: Banknote },
+    // Weather API SaaS
+    { href: '/weather', label: 'Weather API', icon: Cloud },
     // Project Management Section
     { href: '/dashboard/teams', label: 'Teams', icon: Users },
     { href: '/dashboard/projects', label: 'Projects', icon: FolderOpen },

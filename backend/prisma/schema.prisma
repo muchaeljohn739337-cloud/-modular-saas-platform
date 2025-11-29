@@ -1209,6 +1209,12 @@ model User {
   stripeCustomerId          String?                     @unique
   gpt5Enabled               Boolean                     @default(false)
   whitelistedIPs            String[]
+  
+  // Weather API SaaS fields
+  weatherSubscriptionTier   WeatherSubscriptionTier     @default(FREE)
+  weatherApiCallsToday      Int                         @default(0)
+  weatherLastApiCall        DateTime?
+  
   RPAWorkflow               RPAWorkflow[]
   admin_wallet_transactions admin_wallet_transactions[]
   crypto_wallets            crypto_wallets[]
@@ -1492,4 +1498,11 @@ model FailedJob {
   @@index([type])
   @@index([priority])
   @@index([failedAt])
+}
+
+enum WeatherSubscriptionTier {
+  FREE
+  PRO
+  BUSINESS
+  ENTERPRISE
 }
